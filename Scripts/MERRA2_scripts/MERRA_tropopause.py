@@ -13,7 +13,7 @@ g = 9.81
 R_dry_air = 287.05            # J / (kg K)
 target_lapserate = 2          # K/km
 upper_bound = 50 * 100        # 50 hPa -> Pa
-precip_thr = 4                # mm/day
+precip_thr = 8                # mm/day
 lower_bound = 400 * 100       # 400 hPa -> Pa
 
 chunks = {"lat": 361, 
@@ -21,7 +21,7 @@ chunks = {"lat": 361,
 
 # --- Directory Setup ---
 input_base = "/home/karengarcia/downloads-karengarcia/MERRA-2/"
-output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/{str(precip_thr)}mm/"
+output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/MERRA2_coarse/{str(precip_thr)}mm/"
 os.makedirs(output_dir, exist_ok=True)
 
 # Get all files for June 2014 from the ASM collection
