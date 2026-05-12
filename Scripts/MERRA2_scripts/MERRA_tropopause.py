@@ -15,35 +15,25 @@ target_lapserate = 2          # K/km
 upper_bound = 50 * 100        # 50 hPa -> Pa
 precip_thr = 8                # mm/day
 lower_bound = 400 * 100       # 400 hPa -> Pa
+max_height_cap = 70 *100
 
 chunks = {"lat": 361, 
           "lon": 576}
 
 # --- Directory Setup ---
 input_base = "/home/karengarcia/downloads-karengarcia/MERRA-2/"
-output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/MERRA2_coarse/{str(precip_thr)}mm/"
+output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/Tropopause/"
 os.makedirs(output_dir, exist_ok=True)
 
 # Get all files for June 2014 from the ASM collection
 asm_files = sorted(glob.glob(os.path.join(input_base, "tavg3_3d_asm_Nv/*.2014*.nc4")))
 
-def process_day(asm_file, precip_thr):
+def process_tropopause(asm_file):
     """Processes a single day and returns a 2D overshoot count dataset."""
     date_str = os.path.basename(asm_file).split('.')[-2]
     
-    precip_file = os.path.join(input_base, f"tavg3_3d_mst_Np/MERRA2_400.tavg3_3d_mst_Np.{date_str}.nc4") 
-    mass_file = os.path.join(input_base, f"tavg3_3d_mst_Ne/MERRA2_400.tavg3_3d_mst_Ne.{date_str}.nc4") 
-    
     ds_asm = xr.open_dataset(asm_file, chunks=chunks) #72 levels (model pressures)
-    ds_prec = xr.open_dataset(precip_file, chunks=chunks) #42 levels but they get integrated so it doesn't matter
-    ds_mass = xr.open_dataset(mass_file, chunks=chunks) #73 levelsc (model edges)
-    
-    #averaging over the model edges to make sure they assmilimation files and the moist files have the same lev dimensions
-    cmfmc_edges = ds_mass['CMFMC']
-    mass_flux = (cmfmc_edges.isel(lev=slice(0, -1)) + 
-                 cmfmc_edges.isel(lev=slice(1, None)).values) / 2
-    mass_flux = mass_flux.assign_coords(lev=ds_asm.lev) 
-    
+    ds_asm = ds_asm.sortby('lev', ascending=False)
     #Masking the pressure between 400hPa and 50hPa so that I can restrict the tropopause location
     mask = (ds_asm['PL'] >= upper_bound) & (ds_asm['PL'] <= lower_bound)
     temp_masked = ds_asm['T'].where(mask)     #masking the temperature
@@ -53,74 +43,71 @@ def process_day(asm_file, precip_thr):
     dT = temp_masked.diff('lev')
     dP = press_masked.diff('lev')
 
-    
     T_mid = (temp_masked.isel(lev=slice(0,-1)) + temp_masked.isel(lev=slice(1,None)).values) / 2
     P_mid = (press_masked.isel(lev=slice(0,-1)) + press_masked.isel(lev=slice(1,None)).values) / 2
 
     dz = -(R_dry_air * T_mid) / (g * P_mid) * dP 
     lapse_rate = -(dT / dz) * 1000 #K/m -> K/km
-
-    reversed_lapse = lapse_rate.sortby('lev', ascending=False)
-    trop_idx = (reversed_lapse <= target_lapserate).argmax(dim='lev').compute()
-    final_pressures = P_mid.sortby('lev', ascending=False).isel(lev=trop_idx).compute()
     
-    # 3. Overshooting Mask
-    #Cloud ice plus cloud liquid = full cloud
-    cloud_total = ds_asm['QI'].where(mask) + ds_asm['QL'].where(mask)
-    above_tp = P_mid < final_pressures
+    #LAPSE RATE TROPOPAUSE (LRT)
+    tropopause_mask = lapse_rate <= target_lapserate
+    lrt_index = tropopause_mask.argmax(dim='lev').compute()
+    lrt_pressure = press_masked.isel(lev=lrt_index)
     
-    #vertical intergration of the  ice convective precipitation and liquid convective precipitation
-    precip = ds_prec["PFLCU"].sum(dim='lev') + ds_prec["PFICU"].sum(dim='lev')
+    #COLD POINT TROPOPAUSE (CPT)
+    cpt_index = temp_masked.argmin(dim='lev').compute()
+    cpt_pressure = press_masked.isel(lev=cpt_index)
     
-    overshoot_mask = (cloud_total.isel(lev=slice(0,-1)).where(above_tp) > 0) & \
-                     (precip >= precip_thr / 86400) & \
-                     (mass_flux.where(above_tp) > 0)
+    index_diff = np.abs(cpt_index - lrt_index)
     
-    daily_overshoot = overshoot_mask.any(dim="lev").astype("int8")
-    return daily_overshoot.to_dataset(name="overshoot")
-
+    use_cpt_condition = (index_diff >=3) & (cpt_pressure >= max_height_cap)
+    
+    true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
+    # final_tp_index    = xr.where(use_cpt_condition, cpt_index, lrt_index)
+    
+    # Return the daily mean (averaging across the 'time' dimension within the file)
+    return true_tropopause_p.mean(dim='time').to_dataset(name="tp_pressure")
 
 for f in asm_files:
     date_label = os.path.basename(f).split('.')[-2]
-    out_path = os.path.join(output_dir, f"MERRA_overshoot_{str(precip_thr)}mm_{date_label}.nc")
+    out_path = os.path.join(output_dir, f"MERRA_tp_pressure_{date_label}.nc")
     
-    ds_day = process_day(f,precip_thr)
-    ds_day = ds_day.coarsen(lat=5, lon=4, boundary="trim").mean()
-    ds_day.to_netcdf(out_path)
+    if not os.path.exists(out_path):
+        ds_day = process_tropopause(f)
+        ds_day.to_netcdf(out_path)
+        print(f"Processed: {date_label}")
 
-all_daily_files = sorted(glob.glob(os.path.join(output_dir, f"MERRA_overshoot_{str(precip_thr)}mm_*.nc")))
-ds_month = xr.open_mfdataset(all_daily_files, chunks={'time': 8})
+all_daily_files = sorted(glob.glob(os.path.join(output_dir, "MERRA_tp_pressure_*.nc")))
+ds_year = xr.open_mfdataset(all_daily_files, combine='nested', concat_dim='time')
 
-monthly_cumulative = ds_month['overshoot'].sum(dim="time").compute()
+# Calculate mean and convert Pa to hPa
+annual_mean_hpa = ds_year['tp_pressure'].mean(dim="time").compute() / 100.0
 
-lon = monthly_cumulative["lon"]
-lat = monthly_cumulative["lat"] 
+# --- Step 3: Plotting ---
+fig, ax = plt.subplots(1, 1, figsize=(18, 9), subplot_kw={'projection': ccrs.PlateCarree()})
+ax.coastlines(resolution='110m', color='black', linewidth=1)
+ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.5)
 
-fig, ax = plt.subplots(1, 1, figsize=(24, 8), subplot_kw={'projection': ccrs.PlateCarree()})
-ax.coastlines(color='black', linewidth=0.8)
-ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.4)
-# ax.add_feature(cfeature.LAND)
+# Typical tropopause pressure range: ~80 hPa (Tropics) to ~350 hPa (Poles)
+levels = np.arange(80, 420, 20)
+cmap = plt.get_cmap("RdYlBu_r") # Reversed: Blue is high altitude (low pressure)
 
+cf = ax.contourf(annual_mean_hpa.lon, annual_mean_hpa.lat, annual_mean_hpa,
+                 levels=levels,
+                 transform=ccrs.PlateCarree(), 
+                 cmap=cmap, 
+                 extend='both')
 
-levels = np.arange(1, 28, 1,dtype = int) 
-cmap = plt.get_cmap("Blues").copy()
-cmap.set_under('white', alpha=0)
+gl = ax.gridlines(draw_labels=True, alpha=0.3, linestyle='--')
+gl.top_labels = False
+gl.right_labels = False
 
-norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N, extend='min')
+cbar = fig.colorbar(cf, ax=ax, orientation='vertical', shrink=0.7, pad=0.02)
+cbar.set_label("Mean Tropopause Pressure (hPa)", fontsize=12)
 
-cf = ax.pcolormesh(lon, lat, monthly_cumulative,
-                   transform=ccrs.PlateCarree(), 
-                   cmap=cmap, 
-                   norm=norm)
+plt.title("MERRA-2 Annual Mean Tropopause Pressure (2014)", fontsize=16, pad=20)
 
-gl = ax.gridlines(draw_labels=True, alpha=0.2)
-gl.top_labels = False; gl.right_labels = False
-
-cbar = fig.colorbar(cf, ax=ax, orientation='vertical')
-cbar.set_label("Total Overshooting Events", fontsize=12)
-
-plt.title(f"MERRA-2 Overshooting Events 2014 Precipitation Threshold: {precip_thr}mm/day", fontsize=16)
-
-final_plot_path = f"/home/karengarcia/MERRA_Overshooting_2014_Cumulative_{str(precip_thr)}mm.png"
+final_plot_path = "/home/karengarcia/MSc_project/MERRA_Annual_Mean_Tropopause.png"
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
-print(f"Cumulative map saved to: {final_plot_path}")
+print(f"Annual mean map saved to: {final_plot_path}")
+plt.show()
