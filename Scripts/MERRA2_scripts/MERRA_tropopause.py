@@ -26,7 +26,7 @@ output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/Tropopause
 os.makedirs(output_dir, exist_ok=True)
 
 # Get all files for June 2014 from the ASM collection
-asm_files = sorted(glob.glob(os.path.join(input_base, "tavg3_3d_asm_Nv/*.2014*.nc4")))
+asm_files = sorted(glob.glob(os.path.join(input_base, "tavg3_3d_asm_Nv/*.201401*.nc4")))
 
 def process_tropopause(asm_file):
     """Processes a single day and returns a 2D overshoot count dataset."""
@@ -105,7 +105,7 @@ gl.right_labels = False
 cbar = fig.colorbar(cf, ax=ax, orientation='vertical', shrink=0.7, pad=0.02)
 cbar.set_label("Mean Tropopause Pressure (hPa)", fontsize=12)
 
-plt.title("MERRA-2 Annual Mean Tropopause Pressure (2014)", fontsize=16, pad=20)
+plt.title("MERRA-2 Annual Mean Tropopause Pressure", fontsize=16, pad=20)
 
 final_plot_path = "/home/karengarcia/MSc_project/MERRA_Annual_Mean_Tropopause.png"
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
