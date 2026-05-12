@@ -15,8 +15,9 @@ R_dry_air = 287.05            # J / (kg K)
 chunk_div = 50
 target_lapserate = 2
 precip = 4
+max_height_cap =70
 
-chunks = {"valid_time": 31,
+chunks = {"valid_time": 584,
           "pressure_level": -1,
           "latitude": 360,
           "longitude": 360}
@@ -133,8 +134,26 @@ P_mid = (P_low + P_high) / 2
 dz = -(R_dry_air * T_mid) / (g * P_mid) * dP
 lapse_rate = -(dT / dz) * 1000
 
+
+####Adding new criteria 
+
+#Lapse Rate Tropopause (LRT)
 tropopause_mask = lapse_rate <= target_lapserate
-tropopause_index = tropopause_mask.argmax(dim="pressure_level")
+lrt_index = tropopause_mask.argmax(dim='pressure_level').compute()
+lrt_pressure = temp_ERA['pressure_level'].isel(pressure_level=lrt_index)
+
+#COLD POINT TROPOPAUSE (CPT)
+cpt_index = temp_ERA.t.argmin(dim='pressure_level').compute() 
+cpt_pressure = temp_ERA['pressure_level'].isel(pressure_level=cpt_index)
+
+index_diff = np.abs(cpt_index - lrt_index)
+#New condition: If the CPT and LRT are more than LRT and meets height cap
+use_cpt_condition = (index_diff >= 3) & (cpt_pressure >= max_height_cap) 
+
+true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
+final_tp_index    = xr.where(use_cpt_condition, cpt_index, lrt_index)
+print("Tropopause calculation successful")
+#######
 
 cloud_ice['pressure_level'] = (cloud_ice['pressure_level']).astype('float32')
 cloud_ice['pressure_level'].encoding = {}
@@ -143,14 +162,12 @@ cloud_liquid['pressure_level'] = (cloud_liquid['pressure_level']).astype('float3
 cloud_liquid['pressure_level'].encoding = {}
 
 cloud_total = cloud_ice.ciwc + cloud_liquid.clwc
-
 nlev = temp_ERA.sizes["pressure_level"]
-
 level_indices = xr.DataArray(np.arange(nlev),
                         dims=["pressure_level"],
                         coords={"pressure_level": temp_ERA.pressure_level})
 
-above_tp = level_indices > tropopause_index
+above_tp = temp_ERA.pressure_level <= true_tropopause_p
 above_tp = above_tp.broadcast_like(cloud_total)
 if precip == 8:   #8mm/day
         cloud_above_tp_and_prc = (cloud_total.where(above_tp) > 0) & (cp['cp'] >= 0.333/1000)
