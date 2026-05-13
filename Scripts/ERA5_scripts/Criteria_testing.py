@@ -91,6 +91,7 @@ print(ice_above_trop.min().values, "kg/kg")
 ################ Three criteria: ################
 # 1. Total cloud (sum of cic and clw) above the tropopause is bigger than zero
 # 2. Precipitation threshold must be met (mm/day)
+# 5. Total cloud (sum of cic and clw) above the tropopause is bigger than 10^-5 kg/kg
 
 #option 1
 ice_threshold = 0
@@ -175,4 +176,34 @@ for v in above_tp5.variables:
     above_tp5[v].encoding = {}
 output_path = f'/home/karengarcia/criteria_testing/Option_5/ERA5_overshoot_option5_{str(year)}.nc'
 above_tp.to_netcdf(output_path)
+print(f"File saved to", output_path)
+
+#option 52 
+above_tp5_and_prc4 = (ice_above_trop >1e-5) & \
+                (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
+
+above_tp5_and_prc4 = above_tp5_and_prc4.astype('int8')
+above_tp5_and_prc4 = above_tp5_and_prc4.to_dataset(name='Option_52')
+above_tp5_and_prc4 = above_tp5_and_prc4.assign_coords({"lon": cic_ERA.lon,
+                                                "lat": cic_ERA.lat})
+
+for v in above_tp5_and_prc4.variables:
+    above_tp5_and_prc4[v].encoding = {}
+output_path = f'/home/karengarcia/criteria_testing/Option_52/ERA5_overshoot_option52_{str(year)}.nc'
+above_tp5_and_prc4.to_netcdf(output_path)
+print(f"File saved to", output_path)
+
+#option 53
+above_tp5_and_prc8 = (ice_above_trop > 1e-5) & \
+                (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
+
+above_tp5_and_prc8 = above_tp5_and_prc8.astype('int8')
+above_tp5_and_prc8 = above_tp5_and_prc8.to_dataset(name='Option_53')
+above_tp5_and_prc8 = above_tp5_and_prc8.assign_coords({"lon": cic_ERA.lon,
+                                                "lat": cic_ERA.lat})
+
+for v in above_tp5_and_prc8.variables:
+    above_tp5_and_prc8[v].encoding = {}
+output_path = f'/home/karengarcia/criteria_testing/Option_53/ERA5_overshoot_option53_{str(year)}.nc'
+above_tp5_and_prc8.to_netcdf(output_path)
 print(f"File saved to", output_path)
