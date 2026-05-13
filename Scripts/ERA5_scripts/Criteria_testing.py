@@ -85,8 +85,8 @@ level_indices       = xr.DataArray(np.arange(nlev),
 above_tp = temp_ERA.pressure_level <= true_tropopause_p
 above_tp = above_tp.broadcast_like(cloud_total)
 ice_above_trop = (cloud_total.where(above_tp)).sum(dim="pressure_level")
-print(ice_above_trop.max().values, "kg/kg")
-print(ice_above_trop.min().values, "kg/kg")
+print("Max:",ice_above_trop.max().values, "kg/kg")
+print("Min:",ice_above_trop.min().values, "kg/kg")
 
 ################ Three criteria: ################
 # 1. Total cloud (sum of cic and clw) above the tropopause is bigger than zero
@@ -167,7 +167,7 @@ above_tp_and_prc8.to_netcdf(output_path)
 print(f"File saved to", output_path)
 
 #option 5
-above_tp5 = ((ice_above_trop > 1e-5)) #Has be at least 10^-5 kg/kg 
+above_tp5 = ((ice_above_trop >= 1e-5)) #Has be at least 10^-5 kg/kg 
 above_tp5 = above_tp5.astype('int8')
 above_tp5 = above_tp5.to_dataset(name='Option_5')
 above_tp5 = above_tp5.assign_coords({"lon": cic_ERA.lon,
@@ -179,7 +179,7 @@ above_tp.to_netcdf(output_path)
 print(f"File saved to", output_path)
 
 #option 52 
-above_tp5_and_prc4 = (ice_above_trop >1e-5) & \
+above_tp5_and_prc4 = (ice_above_trop >=1e-5) & \
                 (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
 
 above_tp5_and_prc4 = above_tp5_and_prc4.astype('int8')
@@ -194,7 +194,7 @@ above_tp5_and_prc4.to_netcdf(output_path)
 print(f"File saved to", output_path)
 
 #option 53
-above_tp5_and_prc8 = (ice_above_trop > 1e-5) & \
+above_tp5_and_prc8 = (ice_above_trop >= 1e-5) & \
                 (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
 
 above_tp5_and_prc8 = above_tp5_and_prc8.astype('int8')
