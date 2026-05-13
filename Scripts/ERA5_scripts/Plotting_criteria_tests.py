@@ -7,10 +7,10 @@ from cartopy.util import add_cyclic_point
 import matplotlib.colors as mcolors 
 
 
-file = f'/home/karengarcia/criteria_testing/Option_5/ERA5_overshoot_option5_2014.nc' 
+file = f'/home/karengarcia/criteria_testing/Option_53/ERA5_overshoot_option53_2014.nc' 
 ds = xr.open_mfdataset(file)
 
-occurence = ds["Option_5"].sum(dim="valid_time")
+occurence = ds["Option_53"].sum(dim="valid_time")
 
 fig, ax = plt.subplots(1, 1,figsize=(18, 9),
                        subplot_kw={'projection': ccrs.PlateCarree()})
@@ -37,8 +37,8 @@ cbar = fig.colorbar(cf, ax=ax, orientation='vertical', shrink=0.7, pad=0.02)
 
 cbar.set_label("Occurrence (Count)", fontsize=12)
 
-plt.title(f"ERA5 Criteria Testing \n Option 5: Ice over the tropopause (kg/kg>=1e-5)",fontsize=16)
+plt.title(f"ERA5 Criteria Testing \n Option 5 and 3: Ice over the tropopause (kg/kg>=1e-5) and Precipitation >= 8mm/day",fontsize=16)
 
-final_plot_path = f"/home/karengarcia/criteria_testing/Figures/ERA5_option5_test.png"
+final_plot_path = f"/home/karengarcia/criteria_testing/Figures/ERA5_option53_test.png"
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 print(f"Figure saved to: {final_plot_path}")

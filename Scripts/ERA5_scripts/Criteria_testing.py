@@ -167,13 +167,13 @@ above_tp_and_prc8.to_netcdf(output_path)
 print(f"File saved to", output_path)
 
 #option 5
-above_tp5 = ((ice_above_trop >= 1e-5)) #Has be at least 10^-5 kg/kg 
-above_tp5 = above_tp5.astype('int8')
-above_tp5 = above_tp5.to_dataset(name='Option_5')
-above_tp5 = above_tp5.assign_coords({"lon": cic_ERA.lon,
+above_tp = ((ice_above_trop >= 1e-5))
+above_tp = above_tp.astype('int8')
+above_tp = above_tp.to_dataset(name='Option_5')
+above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
                                 "lat": cic_ERA.lat})
-for v in above_tp5.variables:
-    above_tp5[v].encoding = {}
+for v in above_tp.variables:
+    above_tp[v].encoding = {}
 output_path = f'/home/karengarcia/criteria_testing/Option_5/ERA5_overshoot_option5_{str(year)}.nc'
 above_tp.to_netcdf(output_path)
 print(f"File saved to", output_path)
