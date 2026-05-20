@@ -1,79 +1,107 @@
-import xarray as xr 
-import matplotlib.pyplot as plt 
-import cartopy.feature as cfeature 
-import cartopy.crs as ccrs
 import numpy as np
-from cartopy.util import add_cyclic_point
-import matplotlib.colors as mcolors 
-import glob
-import os
-
-# --- Constants ---
-g = 9.81
-R_dry_air = 287.05            # J / (kg K)
-target_lapserate = 2          # K/km
+import xarray as xr
+import matplotlib.pyplot as plt
+year = 2014
+chunks = {"time": 250}
+g = 9.81                      # m/s^2
+R_dry_air = 287.05            # J/(kg K)
+target_lapserate = 2.0        # K/km
 upper_bound = 50 * 100        # 50 hPa -> Pa
-precip_thr = 8                # mm/day
 lower_bound = 400 * 100       # 400 hPa -> Pa
+max_height_cap = 70 * 100     # 70 hPa -> Pa
 
-chunks = {"lat": 361, 
-          "lon": 576}
+input_dir = "/home/karengarcia/downloads-karengarcia/MERRA-2/Regridded_6hourly"
+mst_Np = "/home/karengarcia/downloads-karengarcia/MERRA-2/Regridded_6hourly/MERRA2_400.tavg3_3d_mst_Np.2014_6hourly_CanAM5_grid.nc"
+mst_Ne = "/home/karengarcia/downloads-karengarcia/MERRA-2/Regridded_6hourly/MERRA2_400.tavg3_3d_mst_Ne.2014_6hourly_CanAM5_grid.nc"
+asm_Nv = "/home/karengarcia/downloads-karengarcia/MERRA-2/Regridded_6hourly/MERRA2_400.tavg3_3d_asm_Nv.2014_6hourly_CanAM5_grid.nc"
 
-# --- Directory Setup ---
-input_base = "/home/karengarcia/downloads-karengarcia/MERRA-2/"
-output_dir = f"/home/karengarcia/data-karengarcia/Overshooting/MERRA2/MERRA2_coarse/{str(precip_thr)}mm/"
-os.makedirs(output_dir, exist_ok=True)
+temp = ((xr.open_dataset(asm_Nv, chunks=chunks))['T']).sortby("lev", ascending=False)
+press= ((xr.open_dataset(asm_Nv, chunks=chunks))['PL']).sortby("lev", ascending=False)
+QI = ((xr.open_dataset(asm_Nv, chunks=chunks))['QI']).sortby("lev", ascending=False)
+QL = ((xr.open_dataset(asm_Nv, chunks=chunks))['QL']).sortby("lev", ascending=False)
+cmfmc_edges = ((xr.open_dataset(mst_Ne, chunks=chunks))['CMFMC']).sortby("lev", ascending=False)
+# cmfmc_edges = cmfmc_edges.isel(time=0).sel(lon=0, lat=1.40625)
+# temp = temp.isel(time=0).sel(lon=0, lat=1.40625)
+# press= press.isel(time=0).sel(lon=0, lat=1.40625)
+# QI = QI.isel(time=0).sel(lon=0, lat=1.40625)
+mst_Np_PFLCU = (xr.open_dataset(mst_Np, chunks=chunks))["PFLCU"]
+mst_Np_PFICU = (xr.open_dataset(mst_Np, chunks=chunks))["PFICU"]
+precip = mst_Np_PFLCU.isel(lev=slice(0,5)).sum(dim='lev') + mst_Np_PFICU.isel(lev=slice(0,5)).sum(dim='lev')
+# precip = precip.isel(time=0).sel(lon=0, lat=1.40625)
+# cmfmc_edges = (xr.open_dataset(mst_Ne, chunks=chunks))['CMFMC']
+mass_flux = (cmfmc_edges.isel(lev=slice(0, -1)) + 
+             cmfmc_edges.isel(lev=slice(1, None)).values) / 2
+mass_flux = mass_flux.assign_coords(lev=temp.lev)
 
-# Get all files for June 2014 from the ASM collection
-asm_files = sorted(glob.glob(os.path.join(input_base, "tavg3_3d_asm_Nv/*.2014*.nc4")))
+#Masking the pressure between 400hPa and 50hPa so that I can restrict the tropopause location
 
-def process_day(asm_file, precip_thr):
-    """Processes a single day and returns a 2D overshoot count dataset."""
-    date_str = os.path.basename(asm_file).split('.')[-2]
-    
-    precip_file = os.path.join(input_base, f"tavg3_3d_mst_Np/MERRA2_400.tavg3_3d_mst_Np.{date_str}.nc4") 
-    mass_file = os.path.join(input_base, f"tavg3_3d_mst_Ne/MERRA2_400.tavg3_3d_mst_Ne.{date_str}.nc4") 
-    
-    ds_asm = xr.open_dataset(asm_file, chunks=chunks) #72 levels (model pressures)
-    ds_prec = xr.open_dataset(precip_file, chunks=chunks) #42 levels but they get integrated so it doesn't matter
-    ds_mass = xr.open_dataset(mass_file, chunks=chunks) #73 levelsc (model edges)
-    
-    #averaging over the model edges to make sure they assmilimation files and the moist files have the same lev dimensions
-    cmfmc_edges = ds_mass['CMFMC']
-    mass_flux = (cmfmc_edges.isel(lev=slice(0, -1)) + 
-                 cmfmc_edges.isel(lev=slice(1, None)).values) / 2
-    mass_flux = mass_flux.assign_coords(lev=ds_asm.lev) 
-    
-    #Masking the pressure between 400hPa and 50hPa so that I can restrict the tropopause location
-    mask = (ds_asm['PL'] >= upper_bound) & (ds_asm['PL'] <= lower_bound)
-    temp_masked = ds_asm['T'].where(mask)     #masking the temperature
-    press_masked = ds_asm['PL'].where(mask)   #masking the pressure
+mask = (press >= upper_bound) & (press <= lower_bound)
+#print("Pressure values", press.values)
+#print("UTLS Mask:", mask.values)
+temp_masked = temp.where(mask)
+press_masked = press.where(mask)
+#print("press_masked", press_masked.values)
 
-    #taking the change in temp and pressure along the lev dimension
-    dT = temp_masked.diff('lev')
-    dP = press_masked.diff('lev')
+# #taking the change in temp and pressure along the lev dimension
+dT = temp_masked.diff('lev')
+#print("dT", dT.values)
+dP = press_masked.diff('lev')
+#print("dP:", dP.values)
 
-    
-    T_mid = (temp_masked.isel(lev=slice(0,-1)) + temp_masked.isel(lev=slice(1,None)).values) / 2
-    P_mid = (press_masked.isel(lev=slice(0,-1)) + press_masked.isel(lev=slice(1,None)).values) / 2
+T_mid = (temp_masked.isel(lev=slice(0,-1)) + temp_masked.isel(lev=slice(1,None)).values) / 2
+P_mid = (press_masked.isel(lev=slice(0,-1)) + press_masked.isel(lev=slice(1,None)).values) / 2
 
-    dz = -(R_dry_air * T_mid) / (g * P_mid) * dP 
-    lapse_rate = -(dT / dz) * 1000 #K/m -> K/km
+# # Hydrostatic dz
+dz = -(R_dry_air * T_mid) / (g * P_mid) * dP
+#print("dz:", dz.values)
+lapse_rate = - (dT / dz) * 1000
+#print('lapse rate:', lapse_rate.values)
 
-    reversed_lapse = lapse_rate.sortby('lev', ascending=False)
-    trop_idx = (reversed_lapse <= target_lapserate).argmax(dim='lev').compute()
-    final_pressures = P_mid.sortby('lev', ascending=False).isel(lev=trop_idx).compute()
+# # LAPSE RATE TROPOPAUSE (LRT)
+tropopause_mask     = lapse_rate <= target_lapserate
+#print("Lapse rate mask:", tropopause_mask.values)
+lrt_index = tropopause_mask.argmax(dim="lev").compute()
+#print("lrt_index:", lrt_index.values)
+lrt_pressure = press.isel(lev=lrt_index)
+#print("lrt pressure:", lrt_pressure.values)
+
+# # COLD POINT TROPOPAUSE (CPT)
+cpt_index = temp_masked.T.argmin(dim="lev").compute()
+#print("Cold Point TP Index:", cpt_index.values)
+cpt_pressure = press.isel(lev=cpt_index)
+#print("CPT Pressure:", cpt_pressure.values)
+
+index_diff = np.abs(cpt_index - lrt_index)
+#print("index diff:", index_diff)
+# # Condition: If CPT is significantly different from LRT and meets height cap
+use_cpt_condition = (index_diff >= 3) & (cpt_pressure >= max_height_cap)
+#print(use_cpt_condition.values)
+
+# # Final Tropopause Pressure and Index selection
+true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
+#print("Final tropopause pressure:", true_tropopause_p.values)
+final_tp_index = xr.where(use_cpt_condition, cpt_index, lrt_index)
+#print("Final tropopause index:",final_tp_index.values)
+#print("Tropopause calculation successful")
+
+
+
+# #### Overshooting Calculation ####
+cloud_total         = QI + QL
+nlev                = temp.sizes["lev"]
+#print("nlev:", nlev)
+level_indices       = xr.DataArray(np.arange(nlev),
+                            dims = ["lev"],
+                            coords ={"lev": temp.lev})
+
+above_tp = press <= true_tropopause_p
+#print("Above tropopause:", above_tp.values)
+above_tp = above_tp.broadcast_like(cloud_total)
+ice_above_trop = (cloud_total.where(above_tp)).sum(dim="lev")
+dmcu_above_trop = (mass_flux.where(above_tp)).sum(dim="lev")
     
-    # 3. Overshooting Mask
-    #Cloud ice plus cloud liquid = full cloud
-    cloud_total = ds_asm['QI'].where(mask) + ds_asm['QL'].where(mask)
-    above_tp = P_mid < final_pressures
-    
-    #vertical intergration of the  ice convective precipitation and liquid convective precipitation
-    precip = ds_prec["PFLCU"].sum(dim='lev') + ds_prec["PFICU"].sum(dim='lev')
-    
-    overshoot_mask = (cloud_total.isel(lev=slice(0,-1)).where(above_tp) > 0) & \
-                     (precip >= precip_thr / 86400) & \
+overshoot_mask = (ice_above_trop > 0) & \
+                     (precip*86400 >= precip_thr) & \
                      (mass_flux.where(above_tp) > 0)
     
     daily_overshoot = overshoot_mask.any(dim="lev").astype("int8")
