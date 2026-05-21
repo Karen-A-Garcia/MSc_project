@@ -93,9 +93,23 @@ print("Min:",ice_above_trop.min().values, "kg/kg")
 # 2. Precipitation threshold must be met (mm/day)
 # 5. Total cloud (sum of cic and clw) above the tropopause is bigger than 10^-5 kg/kg
 
+#Ice thresholds
+ice_thresholds = 10.0 ** np.arange(-10, 0, 1)
+for ice in ice_thresholds:
+    above_tp = (ice_above_trop >= ice)
+    above_tp = above_tp.astype('int8')
+    above_tp = above_tp.to_dataset(name='Ice_above_tp')
+    above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
+                                    "lat": cic_ERA.lat})
+    for v in above_tp.variables:
+        above_tp[v].encoding = {}
+    output_path = f'/home/karengarcia/criteria_testing/Ice_thresholds/ERA5_above_trop_{str(ice)}_{str(year)}.nc'
+    above_tp.to_netcdf(output_path)
+    print(f"File saved to", output_path)
+
 #option 1
 ice_threshold = 0
-above_tp = ((ice_above_trop > 0))
+above_tp = (ice_above_trop > ice_threshold)
 above_tp = above_tp.astype('int8')
 above_tp = above_tp.to_dataset(name='Option_1')
 above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,

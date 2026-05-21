@@ -105,6 +105,34 @@ dmcu_above_trop = (mass_flux.where(above_tp)).sum(dim="lev")
 # 4. Cumulative mass flux above the tropopause is bigger than zero
 # 5. Total cloud (sum of cic and clw) above the tropopause is bigger than 10^-5 kg/kg
 
+#Ice thresholds
+ice_thresholds = 10.0 ** np.arange(-10, 0, 1)
+for ice in ice_thresholds:
+    above_tp = (ice_above_trop >= ice)
+    above_tp = above_tp.astype('int8')
+    above_tp = above_tp.to_dataset(name='Ice_above_tp')
+    above_tp = above_tp.assign_coords({"lon": QI.lon,
+                                    "lat": QI.lat})
+    for v in above_tp.variables:
+        above_tp[v].encoding = {}
+    output_path = f'/home/karengarcia/criteria_testing/Ice_thresholds/MERRA_above_trop_{str(ice)}_{str(year)}.nc'
+    above_tp.to_netcdf(output_path)
+    print(f"File saved to", output_path)
+
+mass_flux_thresholds = 10.0 ** np.arange(-10, 0, 1)
+for mf in max_flux_thresholds:
+    CMF_above_tp = (dmcu_above_trop >= mf)
+    CMF_above_tp = CMF_above_tp.astype('int8')
+    CMF_above_tp = CMF_above_tp.to_dataset(name='Mass_flux_above_tp')
+    CMF_above_tp = CMF_above_tp.assign_coords({"lon": QI.lon,
+                                    "lat": QI.lat})
+    for v in CMF_above_tp.variables:
+        CMF_above_tp[v].encoding = {}
+    output_path = f'/home/karengarcia/criteria_testing/Mass_flux_thresholds/MERRA_above_trop_{str(mf)}_{str(year)}.nc'
+    CMF_above_tp.to_netcdf(output_path)
+    print(f"File saved to", output_path)
+
+
 #option 1
 ice_threshold = 0
 ice_above_tp = ((ice_above_trop > 0))
