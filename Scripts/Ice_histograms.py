@@ -21,7 +21,7 @@ plt.axvline(p10_era, color="red", linestyle="--",
 plt.legend()
 plt.xscale("log")
 plt.yscale("log")
-plt.ylim([0, 1e6])
+plt.ylim([0, 3e6])
 
 plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
@@ -50,7 +50,7 @@ plt.axvline(p10_merra, color="red", linestyle="--",
 plt.legend()
 plt.xscale("log")
 plt.yscale("log")
-plt.ylim([0, 1e6])
+plt.ylim([0, 3e6])
 
 plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
@@ -80,7 +80,7 @@ plt.axvline(p10_merra, color="orange", linestyle="--",
 plt.legend()
 plt.xscale("log")
 plt.yscale("log")
-plt.ylim([0, 1e6])
+plt.ylim([0, 3e6])
 
 plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
