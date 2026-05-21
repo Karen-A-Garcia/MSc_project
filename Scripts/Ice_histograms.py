@@ -14,7 +14,7 @@ bins_era = np.logspace(np.log10(data_era.min()), np.log10(data_era.max()), 100)
 p10_era = np.percentile(data_era, 10)
 
 plt.figure(figsize=(16,6))
-plt.hist(data_era, bins=bins_era)
+plt.hist(data_era, bins=bins_era, color="skyblue", edgecolor='black', alpha=0.9)
 plt.axvline(p10_era, color="red", linestyle="--",
             linewidth=2, label=f"10th percentile = {p10_era:.3e} kg/kg")
 
@@ -43,7 +43,7 @@ bins_merra = np.logspace(np.log10(data_merra.min()), np.log10(data_merra.max()),
 p10_merra = np.percentile(data_merra, 10)
 
 plt.figure(figsize=(16,6))
-plt.hist(data_merra, bins=bins_merra)
+plt.hist(data_merra, bins=bins_merra, color="skyblue", edgecolor='black', alpha=0.9)
 plt.axvline(p10_merra, color="red", linestyle="--",
             linewidth=2, label=f"10th percentile = {p10_merra:.3e} kg/kg")
 
