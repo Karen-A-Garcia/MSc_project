@@ -92,6 +92,9 @@ above_tp = press <= true_tropopause_p
 #print("Above tropopause:", above_tp.values)
 above_tp = above_tp.broadcast_like(cloud_total)
 ice_above_trop = (cloud_total.where(above_tp)).sum(dim="lev")
+ice_above_trop = ice_above_trop.to_dataset(name='Ice_above_tp')
+ice_path = f'/home/karengarcia/criteria_testing/MERRA_ice_over_tp.nc'
+ice_above_trop.to_netcdf(ice_path)
 dmcu_above_trop = (mass_flux.where(above_tp)).sum(dim="lev")
 # print("Convective mass flux above trop:", dmcu_above_trop.values)
 #print("Ice above tropopause:", ice_above_trop.values)
@@ -106,8 +109,8 @@ dmcu_above_trop = (mass_flux.where(above_tp)).sum(dim="lev")
 # 5. Total cloud (sum of cic and clw) above the tropopause is bigger than 10^-5 kg/kg
 
 #Ice thresholds
-ice_thresholds = 10.0 ** np.arange(-10, 0, 1)
-for ice in ice_thresholds:
+thresholds = np.array([1e-10,1e-09,1e-08,1e-07,1e-06,1e-05,1e-04,1e-03,1e-02,1e-01])
+for ice in thresholds:
     above_tp = (ice_above_trop >= ice)
     above_tp = above_tp.astype('int8')
     above_tp = above_tp.to_dataset(name='Ice_above_tp')
@@ -118,9 +121,7 @@ for ice in ice_thresholds:
     output_path = f'/home/karengarcia/criteria_testing/Ice_thresholds/MERRA_above_trop_{str(ice)}_{str(year)}.nc'
     above_tp.to_netcdf(output_path)
     print(f"File saved to", output_path)
-
-mass_flux_thresholds = 10.0 ** np.arange(-10, 0, 1)
-for mf in max_flux_thresholds:
+    
     CMF_above_tp = (dmcu_above_trop >= mf)
     CMF_above_tp = CMF_above_tp.astype('int8')
     CMF_above_tp = CMF_above_tp.to_dataset(name='Mass_flux_above_tp')

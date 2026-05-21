@@ -85,6 +85,9 @@ level_indices       = xr.DataArray(np.arange(nlev),
 above_tp = temp_ERA.pressure_level <= true_tropopause_p
 above_tp = above_tp.broadcast_like(cloud_total)
 ice_above_trop = (cloud_total.where(above_tp)).sum(dim="pressure_level")
+ice_above_trop = ice_above_trop.to_dataset(name='Ice_above_tp')
+ice_path = f'/home/karengarcia/criteria_testing/ERA5_ice_over_tp.nc'
+ice_above_trop.to_netcdf(ice_path)
 print("Max:",ice_above_trop.max().values, "kg/kg")
 print("Min:",ice_above_trop.min().values, "kg/kg")
 
@@ -94,8 +97,8 @@ print("Min:",ice_above_trop.min().values, "kg/kg")
 # 5. Total cloud (sum of cic and clw) above the tropopause is bigger than 10^-5 kg/kg
 
 #Ice thresholds
-ice_thresholds = 10.0 ** np.arange(-10, 0, 1)
-for ice in ice_thresholds:
+thresholds = np.array([1e-10,1e-09,1e-08,1e-07,1e-06,1e-05,1e-04,1e-03,1e-02,1e-01])
+for ice in thresholds:
     above_tp = (ice_above_trop >= ice)
     above_tp = above_tp.astype('int8')
     above_tp = above_tp.to_dataset(name='Ice_above_tp')
