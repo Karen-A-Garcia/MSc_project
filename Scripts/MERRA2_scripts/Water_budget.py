@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-year = 2014
+
 chunks = {"time": 250}
 g = 9.81                      # m/s^2
 R_dry_air = 287.05            # J/(kg K)
@@ -80,15 +80,13 @@ print("Total column integrated water:",W_strat.values)
  
 
 W_strat = W_strat.to_dataset(name="SWC")
-
 W_strat = W_strat.assign_coords({"lat": temp.lat,
                                  "lon": temp.lon})
-
 for v in W_strat:
     W_strat[v].encoding = {}
 
 print("Stratospheric water column (kg/m^2) calculated.")
-W_strat.to_netcdf("MERRA2_stratospheric_water_column.nc")
+W_strat.to_netcdf("/home/karengarcia/Stratospheric_WB/MERRA2_stratospheric_water_column.nc")
 
 
 
