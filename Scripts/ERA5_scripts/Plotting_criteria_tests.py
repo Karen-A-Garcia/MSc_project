@@ -43,12 +43,13 @@ import matplotlib.colors as mcolors
 # plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 # print(f"Figure saved to: {final_plot_path}")
 
-thresholds = np.array([1e-10,1e-09,1e-08,1e-07,1e-06,1e-05,1e-04,1e-03,1e-02,1e-01])
-for ice in thresholds:
-    file = f'/home/karengarcia/criteria_testing/Mass_flux_thresholds/MERRA_above_trop_{str(ice)}_2014.nc' 
+thresholds = np.array([1e-10,1e-09,1e-08,1e-07,1e-06,1e-05,1e-04,1e-03])
+limits = [1200,1100,1100,900,500,300,10,10]
+for i in range(len(thresholds)):
+    file = f'/home/karengarcia/criteria_testing/Ice_thresholds/ERA5_above_trop_{str(thresholds[i])}_2014.nc' 
     ds = xr.open_mfdataset(file)
 
-    occurence = ds["Mass_flux_above_tp"].sum(dim="time")
+    occurence = ds["Ice_above_tp"].sum(dim="valid_time")
 
     fig, ax = plt.subplots(1, 1,figsize=(18, 9),
                         subplot_kw={'projection': ccrs.PlateCarree()})
@@ -57,7 +58,7 @@ for ice in thresholds:
     ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.5)
 
     cmap = plt.get_cmap("Blues")
-    levels = np.linspace(1, occurence.max().values, 51)   # 51 intervals
+    levels = np.linspace(1, limits[i], 50)  
     norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N)
 
     cf = ax.pcolormesh(occurence.lon,occurence.lat,occurence.values,
@@ -75,8 +76,8 @@ for ice in thresholds:
 
     cbar.set_label("Occurrence (Count)", fontsize=12)
 
-    plt.title(f"MERRA Criteria Testing \n Mass flux over the tropopause (kg/m$^{2}$s >={str(ice)})",fontsize=16)
+    plt.title(f"ERA5 Criteria Testing \n Combined Cloud Water and Cloud Ice Over the Tropopause (kg/kg $\geq$ {str(thresholds[i])})",fontsize=16)
 
-    final_plot_path = f"/home/karengarcia/criteria_testing/Figures/MERRA_mf_above_trop_{str(ice)}kgm2s_test.png"
+    final_plot_path = f"/home/karengarcia/criteria_testing/Figures/ERA5_ice_above_trop_{str(thresholds[i])}kg_test.png"
     plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
     print(f"Figure saved to: {final_plot_path}")
