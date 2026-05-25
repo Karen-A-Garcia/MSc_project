@@ -49,7 +49,7 @@ thresholds = np.array([1e-10,1e-09,1e-08,1e-07,1e-06,1e-05,1e-04,1e-03])
 limits = [1200,1100,1100,900,500,300,10,10]
 limits2= [500, 500, 500, 500,400,400,200,10]
 for i in range(len(thresholds)):
-    file = f'/home/karengarcia/criteria_testing/Ice_thresholds/MERRA_above_trop_{str(thresholds[i])}_2014.nc' 
+    file = f'/home/karengarcia/criteria_testing/Ice_thresholds/ERA5_above_trop_{str(thresholds[i])}_2014.nc' 
     ds = xr.open_mfdataset(file)
 
     occurence = ds["Ice_above_tp"].sum(dim="time")

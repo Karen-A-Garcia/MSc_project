@@ -22,12 +22,12 @@ plt.legend()
 plt.xscale("log")
 plt.yscale("log")
 plt.ylim([0, 3e6])
-
-plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
+plt.xlim([1e-13, 2e-3])
+plt.xlabel("Cloud Ice + Cloud Liquid (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
-plt.title("ERA5 Histogram of Combined Cloud Ice and Cloud Liquid Mass Over the Tropopause")
+plt.title("ERA5 Histogram of Combined Cloud Ice and Cloud Liquid Over the Tropopause")
 
-plt.savefig("/home/karengarcia/criteria_testing/ERA5_ice_histogram.png",
+plt.savefig("/home/karengarcia/MSc_project/Figures/ERA5_ice_histogram.png",
             dpi=300, bbox_inches='tight')
 
 
@@ -52,11 +52,11 @@ plt.xscale("log")
 plt.yscale("log")
 plt.ylim([0, 3e6])
 
-plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
+plt.xlabel("Cloud Ice + Cloud Liquid (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
-plt.title("MERRA-2 Histogram of Combined Cloud Ice and Cloud Liquid Mass Over the Tropopause")
+plt.title("MERRA-2 Histogram of Combined Cloud Ice and Cloud Liquid Over the Tropopause")
 
-plt.savefig("/home/karengarcia/criteria_testing/MERRA_ice_histogram.png",
+plt.savefig("/home/karengarcia/MSc_project/Figures/MERRA_ice_histogram.png",
             dpi=300, bbox_inches='tight')
 
 
@@ -82,11 +82,11 @@ plt.xscale("log")
 plt.yscale("log")
 plt.ylim([0, 3e6])
 
-plt.xlabel("Cloud Ice Mass + Cloud Liquid Mass (kg/kg)")
+plt.xlabel("Cloud Ice + Cloud Liquid (kg/kg)")
 plt.ylabel("Occurrences per year (Count)")
 plt.title("ERA5 vs MERRA-2 Overlay")
 
-plt.savefig("/home/karengarcia/criteria_testing/ERA5_vs_MERRA_ice_histogram.png",
+plt.savefig("/home/karengarcia/MSc_project/Figures/ERA5_vs_MERRA_ice_histogram.png",
             dpi=300, bbox_inches='tight')
 
 print("Done.")
