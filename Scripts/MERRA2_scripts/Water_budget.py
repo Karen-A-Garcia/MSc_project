@@ -18,10 +18,10 @@ asm_Nv = "/home/karengarcia/downloads-karengarcia/MERRA-2/Regridded_6hourly/MERR
 temp = ((xr.open_dataset(asm_Nv, chunks=chunks))['T']).sortby("lev", ascending=False)
 press= ((xr.open_dataset(asm_Nv, chunks=chunks))['PL']).sortby("lev", ascending=False)
 sphum= ((xr.open_dataset(asm_Nv, chunks=chunks))['QV']).sortby("lev", ascending=False)
-# temp = temp.isel(time=0).sel(lat=0,lon=0 ,method='nearest')
-# press= press.isel(time=0).sel(lat=0,lon=0 ,method='nearest')
-# sphum= sphum.isel(time=0).sel(lat=0,lon=0 ,method='nearest')
-
+temp = temp.sel(lat=slice(-30,30))
+press= press.sel(lat=slice(-30,30))
+sphum= sphum.sel(lat=slice(-30,30))
+# print(temp)
 #Masking the pressure between 400hPa and 50hPa so that I can restrict the tropopause location
 
 mask = (press >= upper_bound) & (press <= lower_bound)
@@ -57,37 +57,37 @@ true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
 final_tp_index = xr.where(use_cpt_condition, cpt_index, lrt_index)
 print("Tropopause calculation successful")
 
-#Stratosphere mask
-nlev                = temp.sizes["lev"]
-level_indices       = xr.DataArray(np.arange(nlev),
-                            dims = ["lev"],
-                            coords ={"lev": temp.lev})
+# print(press.values)
 
 above_tp = press <= true_tropopause_p
-print("Above tropopause:", above_tp.values)
-above_tp = above_tp.broadcast_like(sphum)
-sphum_above_trop = sphum.where(above_tp)
-press_strat = press.where(above_tp)
-print("Specific humidity above tropopause:", sphum_above_trop.values)
 
-dP = np.abs(press_strat.diff('lev'))
+#Taking the values of SHUM above the tropopause, everything else should be zero
+shum_above_trop = sphum.where(above_tp, 0,0)
+dP = np.abs(press.diff(dim='lev'))
+# print(dP.values)
+# #Realigning becasue dP array is shorter because of the differencing
+shum_above_trop = shum_above_trop.isel(lev=slice(0,-1))
 
-q_aligned = sphum_above_trop.isel(lev = slice(0, -1))
+# # #Integral of (q*dP)/g (Units: kg*m^2)
+W_strat = (shum_above_trop*dP).sum(dim='lev') / g
+E_radius = 6371000.0
 
-# integral of  (q * dP) / g (Units: kg/m^2)
-W_strat = (q_aligned * dP*100).sum("lev", skipna=True) / g
-print("Total column integrated water:",W_strat.values)
- 
+# 2. Calculate the grid spacing in radians
+# Assumes regular spacing. d_lon and d_lat will be scalars.
+d_lon = np.deg2rad(temp.lon.diff("lon").mean())
+d_lat = np.deg2rad(temp.lat.diff("lat").mean())
 
-W_strat = W_strat.to_dataset(name="SWC")
-W_strat = W_strat.assign_coords({"lat": temp.lat,
-                                 "lon": temp.lon})
-for v in W_strat:
-    W_strat[v].encoding = {}
-
-print("Stratospheric water column (kg/m^2) calculated.")
-W_strat.to_netcdf("/home/karengarcia/Stratospheric_WB/MERRA2_stratospheric_water_column.nc")
-
-
-
-
+# #Calculate the area of each cell
+cell_area = (E_radius**2) * np.cos(np.deg2rad(temp.lat)) * d_lat * d_lon
+total_mass = (W_strat * cell_area).sum(dim=["lat", "lon"])
+total_mass_val = (total_mass.compute())#.rolling(valid_time=1).mean()
+print(total_mass_val.values/1e9, "Tg")
+plt.figure(figsize=(16, 6))
+plt.plot(total_mass_val['time'], total_mass_val.values/1e9)
+plt.xlabel("Time (YYYY-MM)")
+plt.ylabel("Mass (Tg)")
+plt.title("MERRA-2 Total Integrated Stratospheric Water Vapour (30N to 30S)")
+final_plot_path = f"/home/karengarcia/MSc_project/Figures/MERRA_Tropics_Water_Budget.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
