@@ -81,3 +81,4 @@ for i in range(len(thresholds)):
     final_plot_path = f"/home/karengarcia/criteria_testing/Figures/ERA5_ice_above_trop_{str(thresholds[i])}kg_test.png"
     plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
     print(f"Figure saved to: {final_plot_path}")
+    

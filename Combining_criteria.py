@@ -49,9 +49,9 @@ for threshold in thresholds:
 
 
 #Histograms
-img6 = Image.open('/home/karengarcia/MSc_project/Figures/MERRA_ice_histogram.png')
-img7 = Image.open('/home/karengarcia/MSc_project/Figures/ERA5_ice_histogram.png')
-img8 = Image.open('/home/karengarcia/MSc_project/Figures/total_water_histogram.png')
+img6 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/MERRA_ice_histogram.png')
+img7 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/ERA5_ice_histogram.png')
+img8 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/total_water_histogram.png')
 
 fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 0.9]})
 axes[0].imshow(img6)
@@ -69,8 +69,8 @@ plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 print(f"Figure saved to: {final_plot_path}")
 
 
-img9  = Image.open('/home/karengarcia/MSc_project/Figures/MERRA_mf_histogram.png')
-img10 = Image.open('/home/karengarcia/MSc_project/Figures/DMCU_histogram.png')
+img9  = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/MERRA_mf_histogram.png')
+img10 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/DMCU_histogram.png')
 
 fig, axes = plt.subplots(2, 1, figsize=(10, 5), gridspec_kw={'height_ratios': [1, 0.9]})
 

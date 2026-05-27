@@ -58,7 +58,7 @@ cpt_pressure = press.isel(lev=cpt_index)
 
 index_diff = np.abs(cpt_index - lrt_index)
 # # Condition: If CPT is significantly different from LRT and meets height cap
-use_cpt_condition = (index_diff >= 3) & (cpt_pressure >= max_height_cap)
+use_cpt_condition = (index_diff >= 3)
 
 # # Final Tropopause Pressure and Index selection
 true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
@@ -76,13 +76,13 @@ level_indices       = xr.DataArray(np.arange(nlev),
 
 above_tp = press <= true_tropopause_p
 
-above_tp = above_tp.broadcast_like(cloud_total)
+# above_tp = above_tp.broadcast_like(cloud_total)
 ice_above_trop = (cloud_total.where(above_tp)).sum(dim="lev")
 cmu_above_trop = (mass_flux.where(above_tp)).sum(dim="lev")
     
-overshoot = (ice_above_trop > 0) & \
-            (precip*86400 >= precip_thr) & \
-            (cmu_above_trop > 0)
+overshoot = (ice_above_trop >= 1e-8) & \
+            (cmu_above_trop > 1e-9) & \
+            (precip*86400 >= 1e-3)
 overshoot = overshoot.astype("int8")
 overshoot = overshoot.to_dataset(name="overshoot")
 overshoot = overshoot.assign_coords({"latitude": QI.lat,
@@ -91,6 +91,6 @@ overshoot = overshoot.assign_coords({"latitude": QI.lat,
 for v in overshoot.variables:
         overshoot[v].encoding = {}
 
-overshoot.to_netcdf(f"/home/karengarcia/data-karengarcia/Overshooting/MERRA_coarse/{str(precip)}mm/MERRA_overshoot_{str(year)}_{str(precip)}mm.nc")
-print(f"Files saved to /home/karengarcia/data-karengarcia/Overshooting/MERRA_coarse/{str(precip)}mm/MERRA_overshoot_{str(year)}_{str(precip)}mm.nc")
+overshoot.to_netcdf(f"/home/karengarcia/data-karengarcia/Overshooting/MERRA_coarse/1e-3/MERRA_overshoot_{str(year)}.nc")
+print(f"Files saved to /home/karengarcia/data-karengarcia/Overshooting/MERRA_coarse/1e-3/MERRA_overshoot_{str(year)}.nc")
 print("Done!")

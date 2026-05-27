@@ -34,7 +34,6 @@ q_paths = sorted(glob.glob(os.path.join(input_dir,"specific_humidity/ERA5_specif
 q_ERA = xr.open_mfdataset(q_paths, chunks=chunks) 
 
 
-
 #### Tropopause ####
 # UTLS mask
 plev_mask = ((temp_ERA["pressure_level"] >= top_boundary) &
@@ -118,5 +117,4 @@ plt.title("ERA5 Total Integrated Stratospheric Water Vapour (Global)")
 final_plot_path = f"/home/karengarcia/MSc_project/Figures/ERA_Global_Water_Budget.png"
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 plt.close()
-
 print(f"Figure saved to: {final_plot_path}")

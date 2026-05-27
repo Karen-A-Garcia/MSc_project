@@ -88,6 +88,8 @@ ice_above_trop = (cloud_total.where(above_tp)).sum(dim="pressure_level")
 ice_above_trop = ice_above_trop.to_dataset(name='Ice_above_tp')
 ice_path = f'/home/karengarcia/criteria_testing/ERA5_ice_over_tp.nc'
 ice_above_trop.to_netcdf(ice_path)
+
+
 print("Max:",ice_above_trop.max().values, "kg/kg")
 print("Min:",ice_above_trop.min().values, "kg/kg")
 
@@ -110,117 +112,117 @@ for ice in thresholds:
     above_tp.to_netcdf(output_path)
     print(f"File saved to", output_path)
 
-#option 1
-ice_threshold = 0
-above_tp = (ice_above_trop > ice_threshold)
-above_tp = above_tp.astype('int8')
-above_tp = above_tp.to_dataset(name='Option_1')
-above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
-                                "lat": cic_ERA.lat})
-for v in above_tp.variables:
-    above_tp[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_1/ERA5_overshoot_option1_{str(year)}.nc'
-above_tp.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# #option 1
+# ice_threshold = 0
+# above_tp = (ice_above_trop > ice_threshold)
+# above_tp = above_tp.astype('int8')
+# above_tp = above_tp.to_dataset(name='Option_1')
+# above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
+#                                 "lat": cic_ERA.lat})
+# for v in above_tp.variables:
+#     above_tp[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_1/ERA5_overshoot_option1_{str(year)}.nc'
+# above_tp.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 2
-precip1 = 4
-prc4mm = prc_ERA["cp"]*24000 >= precip1 #Convert (meter/hour to mm/day)
-prc4mm = prc4mm.astype('int8')
-prc4mm = prc4mm.to_dataset(name='Option_2')
-prc4mm = prc4mm.assign_coords({"lon": cic_ERA.lon,
-                                "lat": cic_ERA.lat})
+# #option 2
+# precip1 = 4
+# prc4mm = prc_ERA["cp"]*24000 >= precip1 #Convert (meter/hour to mm/day)
+# prc4mm = prc4mm.astype('int8')
+# prc4mm = prc4mm.to_dataset(name='Option_2')
+# prc4mm = prc4mm.assign_coords({"lon": cic_ERA.lon,
+#                                 "lat": cic_ERA.lat})
 
-for v in prc4mm.variables:
-    prc4mm[v].encoding = {}
+# for v in prc4mm.variables:
+#     prc4mm[v].encoding = {}
 
-output_path = f'/home/karengarcia/criteria_testing/Option_2/ERA5_overshoot_option2_{str(year)}.nc'
-prc4mm.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# output_path = f'/home/karengarcia/criteria_testing/Option_2/ERA5_overshoot_option2_{str(year)}.nc'
+# prc4mm.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 3
-precip2 = 8
-prc8mm = prc_ERA["cp"]*24000 >= precip2 #Convert (meter/hour to mm/day)
-prc8mm = prc8mm.astype('int8')
-prc8mm = prc8mm.to_dataset(name='Option_3')
-prc8mm = prc8mm.assign_coords({"lon": cic_ERA.lon,
-                                "lat": cic_ERA.lat})
+# #option 3
+# precip2 = 8
+# prc8mm = prc_ERA["cp"]*24000 >= precip2 #Convert (meter/hour to mm/day)
+# prc8mm = prc8mm.astype('int8')
+# prc8mm = prc8mm.to_dataset(name='Option_3')
+# prc8mm = prc8mm.assign_coords({"lon": cic_ERA.lon,
+#                                 "lat": cic_ERA.lat})
 
-for v in prc8mm.variables:
-    prc8mm[v].encoding = {}
+# for v in prc8mm.variables:
+#     prc8mm[v].encoding = {}
 
-output_path = f'/home/karengarcia/criteria_testing/Option_3/ERA5_overshoot_option3_{str(year)}.nc'
-prc8mm.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# output_path = f'/home/karengarcia/criteria_testing/Option_3/ERA5_overshoot_option3_{str(year)}.nc'
+# prc8mm.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 12
-above_tp_and_prc4 = (ice_above_trop > 0) & \
-                (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
+# #option 12
+# above_tp_and_prc4 = (ice_above_trop > 0) & \
+#                 (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
 
-above_tp_and_prc4 = above_tp_and_prc4.astype('int8')
-above_tp_and_prc4 = above_tp_and_prc4.to_dataset(name='Option_12')
-above_tp_and_prc4 = above_tp_and_prc4.assign_coords({"lon": cic_ERA.lon,
-                                                "lat": cic_ERA.lat})
+# above_tp_and_prc4 = above_tp_and_prc4.astype('int8')
+# above_tp_and_prc4 = above_tp_and_prc4.to_dataset(name='Option_12')
+# above_tp_and_prc4 = above_tp_and_prc4.assign_coords({"lon": cic_ERA.lon,
+#                                                 "lat": cic_ERA.lat})
 
-for v in above_tp_and_prc4.variables:
-    above_tp_and_prc4[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_12/ERA5_overshoot_option12_{str(year)}.nc'
-above_tp_and_prc4.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# for v in above_tp_and_prc4.variables:
+#     above_tp_and_prc4[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_12/ERA5_overshoot_option12_{str(year)}.nc'
+# above_tp_and_prc4.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 13
-above_tp_and_prc8 = (ice_above_trop > 0) & \
-                (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
+# #option 13
+# above_tp_and_prc8 = (ice_above_trop > 0) & \
+#                 (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
 
-above_tp_and_prc8 = above_tp_and_prc8.astype('int8')
-above_tp_and_prc8 = above_tp_and_prc8.to_dataset(name='Option_13')
-above_tp_and_prc8 = above_tp_and_prc8.assign_coords({"lon": cic_ERA.lon,
-                                                "lat": cic_ERA.lat})
+# above_tp_and_prc8 = above_tp_and_prc8.astype('int8')
+# above_tp_and_prc8 = above_tp_and_prc8.to_dataset(name='Option_13')
+# above_tp_and_prc8 = above_tp_and_prc8.assign_coords({"lon": cic_ERA.lon,
+#                                                 "lat": cic_ERA.lat})
 
-for v in above_tp_and_prc8.variables:
-    above_tp_and_prc8[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_13/ERA5_overshoot_option13_{str(year)}.nc'
-above_tp_and_prc8.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# for v in above_tp_and_prc8.variables:
+#     above_tp_and_prc8[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_13/ERA5_overshoot_option13_{str(year)}.nc'
+# above_tp_and_prc8.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 5
-above_tp = ((ice_above_trop >= 1e-5))
-above_tp = above_tp.astype('int8')
-above_tp = above_tp.to_dataset(name='Option_5')
-above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
-                                "lat": cic_ERA.lat})
-for v in above_tp.variables:
-    above_tp[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_5/ERA5_overshoot_option5_{str(year)}.nc'
-above_tp.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# #option 5
+# above_tp = ((ice_above_trop >= 1e-5))
+# above_tp = above_tp.astype('int8')
+# above_tp = above_tp.to_dataset(name='Option_5')
+# above_tp = above_tp.assign_coords({"lon": cic_ERA.lon,
+#                                 "lat": cic_ERA.lat})
+# for v in above_tp.variables:
+#     above_tp[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_5/ERA5_overshoot_option5_{str(year)}.nc'
+# above_tp.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 52 
-above_tp5_and_prc4 = (ice_above_trop >=1e-5) & \
-                (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
+# #option 52 
+# above_tp5_and_prc4 = (ice_above_trop >=1e-5) & \
+#                 (prc_ERA["cp"]*24000 >= precip1) #Convert (meter/hour to mm/day)
 
-above_tp5_and_prc4 = above_tp5_and_prc4.astype('int8')
-above_tp5_and_prc4 = above_tp5_and_prc4.to_dataset(name='Option_52')
-above_tp5_and_prc4 = above_tp5_and_prc4.assign_coords({"lon": cic_ERA.lon,
-                                                "lat": cic_ERA.lat})
+# above_tp5_and_prc4 = above_tp5_and_prc4.astype('int8')
+# above_tp5_and_prc4 = above_tp5_and_prc4.to_dataset(name='Option_52')
+# above_tp5_and_prc4 = above_tp5_and_prc4.assign_coords({"lon": cic_ERA.lon,
+#                                                 "lat": cic_ERA.lat})
 
-for v in above_tp5_and_prc4.variables:
-    above_tp5_and_prc4[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_52/ERA5_overshoot_option52_{str(year)}.nc'
-above_tp5_and_prc4.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# for v in above_tp5_and_prc4.variables:
+#     above_tp5_and_prc4[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_52/ERA5_overshoot_option52_{str(year)}.nc'
+# above_tp5_and_prc4.to_netcdf(output_path)
+# print(f"File saved to", output_path)
 
-#option 53
-above_tp5_and_prc8 = (ice_above_trop >= 1e-5) & \
-                (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
+# #option 53
+# above_tp5_and_prc8 = (ice_above_trop >= 1e-5) & \
+#                 (prc_ERA["cp"]*24000 >= precip2) #Convert (meter/hour to mm/day)
 
-above_tp5_and_prc8 = above_tp5_and_prc8.astype('int8')
-above_tp5_and_prc8 = above_tp5_and_prc8.to_dataset(name='Option_53')
-above_tp5_and_prc8 = above_tp5_and_prc8.assign_coords({"lon": cic_ERA.lon,
-                                                "lat": cic_ERA.lat})
+# above_tp5_and_prc8 = above_tp5_and_prc8.astype('int8')
+# above_tp5_and_prc8 = above_tp5_and_prc8.to_dataset(name='Option_53')
+# above_tp5_and_prc8 = above_tp5_and_prc8.assign_coords({"lon": cic_ERA.lon,
+#                                                 "lat": cic_ERA.lat})
 
-for v in above_tp5_and_prc8.variables:
-    above_tp5_and_prc8[v].encoding = {}
-output_path = f'/home/karengarcia/criteria_testing/Option_53/ERA5_overshoot_option53_{str(year)}.nc'
-above_tp5_and_prc8.to_netcdf(output_path)
-print(f"File saved to", output_path)
+# for v in above_tp5_and_prc8.variables:
+#     above_tp5_and_prc8[v].encoding = {}
+# output_path = f'/home/karengarcia/criteria_testing/Option_53/ERA5_overshoot_option53_{str(year)}.nc'
+# above_tp5_and_prc8.to_netcdf(output_path)
+# print(f"File saved to", output_path)

@@ -16,23 +16,16 @@ chunk_div = 50
 target_lapserate = 2
 precip = 8
 max_height_cap =70
+year=2014
 
 chunks = {"valid_time": 200,
-          "latitude": 360,
-          "longitude": 360}
-year = 2014
+          "latitude": 50,
+          "longitude": 50}
 
-ERA_folder = "/home/karengarcia/downloads-karengarcia/ERA5/Hourly/"
-
-temp_file = sorted(glob.glob(os.path.join(ERA_folder,f"temperature/{str(year)}/Regridded/ERA5_temperature_{str(year)}_6hourly_fixed.nc")))
-cloud_ice_w_file = sorted(glob.glob(os.path.join(ERA_folder,f"specific_cloud_ice_water_content/{str(year)}/Regridded/ERA5_specific_cloud_ice_water_content_{str(year)}_6hourly_CanAM5.nc")))
-cloud_liquid_w_file = sorted(glob.glob(os.path.join(ERA_folder,f"specific_cloud_liquid_water_content/{str(year)}/Regridded/ERA5_specific_cloud_liquid_water_content_{str(year)}_6hourly_CanAM5.nc")))
-convective_precip_file = sorted(glob.glob(os.path.join(ERA_folder,f"convective_precipitation/{str(year)}/Regridded/ERA5_convective_precipitation_{str(year)}_6hourly_CanAM5.nc")))
-
-temp_ERA = xr.open_mfdataset(temp_file, chunks=chunks)
-cp = xr.open_mfdataset(convective_precip_file, chunks=chunks)
-cloud_ice = xr.open_mfdataset(cloud_ice_w_file, chunks=chunks)
-cloud_liquid = xr.open_mfdataset(cloud_liquid_w_file, chunks=chunks)
+temp_ERA = xr.open_dataset("/home/karengarcia/downloads-karengarcia/ERA5/Hourly/temperature/2014/Regridded/ERA5_temperature_2014_6hourly_CanAM5.nc", chunks=chunks)
+cp = xr.open_dataset("/home/karengarcia/downloads-karengarcia/ERA5/Hourly/convective_precipitation/2014/Regridded/ERA5_convective_precipitation_2014_6hourly_CanAM5.nc", chunks=chunks)
+cloud_ice = xr.open_mfdataset("/home/karengarcia/downloads-karengarcia/ERA5/Hourly/specific_cloud_ice_water_content/2014/Regridded/ERA5_specific_cloud_ice_water_content_2014_6hourly_CanAM5.nc", chunks=chunks)
+cloud_liquid = xr.open_mfdataset("/home/karengarcia/downloads-karengarcia/ERA5/Hourly/specific_cloud_liquid_water_content/2014/Regridded/ERA5_specific_cloud_liquid_water_content_2014_6hourly_CanAM5.nc", chunks=chunks)
 
         
 temp_ERA['pressure_level'] = (temp_ERA['pressure_level']).astype('float32')
@@ -65,7 +58,7 @@ cpt_pressure = temp_ERA['pressure_level'].isel(pressure_level=cpt_index)
 
 index_diff = np.abs(cpt_index - lrt_index)
 #New condition: If the CPT and LRT are more than LRT and meets height cap
-use_cpt_condition = (index_diff >= 3) & (cpt_pressure >= max_height_cap) 
+use_cpt_condition = (index_diff >= 3)
 
 true_tropopause_p = xr.where(use_cpt_condition, cpt_pressure, lrt_pressure)
 final_tp_index    = xr.where(use_cpt_condition, cpt_index, lrt_index)
@@ -86,22 +79,16 @@ level_indices = xr.DataArray(np.arange(nlev),
 
 above_tp = temp_ERA.pressure_level <= true_tropopause_p
 above_tp = above_tp.broadcast_like(cloud_total)
-if precip == 8:   #8mm/day
-        cloud_above_tp_and_prc = (cloud_total.where(above_tp) > 0) & (cp['cp'] >= 0.333/1000)
-if precip == 4:   #4mm/day
-        cloud_above_tp_and_prc = (cloud_total.where(above_tp) > 0) & (cp['cp'] >= 0.166/1000)
+cloud_above_tp_and_prc = (cloud_total.where(above_tp) > 1e-8) & (cp['cp']*4000 >= 1e-3)
 cloud_above_tp_and_prc = cloud_above_tp_and_prc.any(dim="pressure_level")
-
 cloud_above_tp_and_prc = cloud_above_tp_and_prc.astype("int8")
-
 cloud_above_tp_and_prc = cloud_above_tp_and_prc.to_dataset(name="overshoot")
-
 cloud_above_tp_and_prc = cloud_above_tp_and_prc.assign_coords({"latitude": temp_ERA.lat,
                                                         "longitude": temp_ERA.lon})
 
 for v in cloud_above_tp_and_prc.variables:
         cloud_above_tp_and_prc[v].encoding = {}
 
-cloud_above_tp_and_prc.to_netcdf(f"/home/karengarcia/data-karengarcia/Overshooting/ERA5_coarse/{str(precip)}mm/ERA_overshoot_{str(year)}_{str(precip)}mm.nc")
-print(f"Files saved to /home/karengarcia/data-karengarcia/Overshooting/ERA5_coarse/{str(precip)}mm/ERA_overshoot_{str(year)}_{str(precip)}mm.nc")
+cloud_above_tp_and_prc.to_netcdf(f"/home/karengarcia/data-karengarcia/Overshooting/ERA5_coarse/1e-3/ERA_overshoot_{str(year)}.nc")
+print(f"Files saved to /home/karengarcia/data-karengarcia/Overshooting/ERA5_coarse/1e-3/ERA_overshoot_{str(year)}.nc")
 print("Done!")
