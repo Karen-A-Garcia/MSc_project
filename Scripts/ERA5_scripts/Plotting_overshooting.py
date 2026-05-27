@@ -11,7 +11,7 @@ ds_year = xr.open_mfdataset(file)
 
 full_year = ds_year["overshoot"].sum(dim="valid_time")
 
-fig, ax = plt.subplots(1, 1,figsize=(18, 9),
+fig, ax = plt.subplots(1, 1,figsize=(24, 8),
                        subplot_kw={'projection': ccrs.PlateCarree()})
 
 ax.coastlines(resolution='110m', color='black', linewidth=1)
@@ -19,27 +19,26 @@ ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.5)
 
 cmap = plt.get_cmap("Blues")
 
-# levels = np.linspace(0, 100, 21)   # 10 intervals
-# norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N)
+levels = np.arange(1, 1000, 50,dtype = int) 
+cmap = plt.get_cmap("Blues").copy()
+cmap.set_under('white', alpha=0)
+norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N, extend='min')
 
 cf = ax.pcolormesh(full_year.lon,full_year.lat,full_year.values,
     # norm=norm,
     transform=ccrs.PlateCarree(),
-    cmap=cmap,
-    shading="auto"
-)
+                   cmap=cmap,
+                   norm=norm)
 
-gl = ax.gridlines(draw_labels=True, alpha=0.3, linestyle='--')
-gl.top_labels = False
-gl.right_labels = False
+gl = ax.gridlines(draw_labels=True, alpha=0.2)
+gl.top_labels = False; gl.right_labels = False
 
-cbar = fig.colorbar(cf, ax=ax, orientation='vertical',
-                    shrink=0.7, pad=0.02)
+cbar = fig.colorbar(cf, ax=ax, orientation='vertical')
 
 cbar.set_label("Occurrence (Count)", fontsize=12)
 
 plt.title(f"ERA5 Overshooting Events",fontsize=16)
 
-final_plot_path = f"/home/karengarcia/MSc_project/Figures/ERA5_coarse_overshooting.png"
+final_plot_path = f"/home/karengarcia/MSc_project/Figures/OC_after_testing/ERA5_coarse_overshooting.png"
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 print(f"Annual mean map saved to: {final_plot_path}")

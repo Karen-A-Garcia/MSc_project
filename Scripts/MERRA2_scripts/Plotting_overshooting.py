@@ -14,7 +14,8 @@ monthly_cumulative = ds_month['overshoot'].sum(dim="time").compute()
 lon = monthly_cumulative["lon"]
 lat = monthly_cumulative["lat"] 
 
-fig, ax = plt.subplots(1, 1, figsize=(24, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+fig, ax = plt.subplots(1, 1, figsize=(24, 8), 
+                       subplot_kw={'projection': ccrs.PlateCarree()})
 ax.coastlines(color='black', linewidth=0.8)
 ax.add_feature(cfeature.BORDERS, linestyle=':', alpha=0.4)
 # ax.add_feature(cfeature.LAND)
