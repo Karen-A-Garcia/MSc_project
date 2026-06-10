@@ -19,9 +19,9 @@ temp = ((xr.open_dataset(asm_Nv, chunks=chunks))['T']).sortby("lev", ascending=F
 press= ((xr.open_dataset(asm_Nv, chunks=chunks))['PL']).sortby("lev", ascending=False)
 sphum= ((xr.open_dataset(asm_Nv, chunks=chunks))['QV']).sortby("lev", ascending=False)
 
-temp = temp.sel(lat=slice(-30,30))
-press= press.sel(lat=slice(-30,30))
-sphum= sphum.sel(lat=slice(-30,30))
+# temp = temp.sel(lat=slice(-30,30))
+# press= press.sel(lat=slice(-30,30))
+# sphum= sphum.sel(lat=slice(-30,30))
 
 d_lon = np.deg2rad(temp.lon.diff("lon").values[0])
 d_lat = np.deg2rad(temp.lat.diff("lat").values[0])
@@ -83,34 +83,34 @@ cell_area = (E_radius**2) * np.cos(np.radians(temp.lat)) * d_lon * d_lat
 total_mass = (W_strat * cell_area).sum(dim=["lat", "lon"])
 total_mass_val = (total_mass.compute()).rolling(time=1).mean()
 
-# Plotting script
-plt.figure(figsize=(16, 6))
-plt.plot(total_mass_val['time'], total_mass_val.values / 1e9) # Convert to Tg
-plt.xlabel("Time (YYYY-MM)")
-plt.ylabel("Mass (Tg)")
-plt.title("MERRA-2 Total Integrated Stratospheric Water Vapour (30N to 30S)")
-final_plot_path = f"/home/karengarcia/MSc_project/Figures/Water_budget/MERRA_Tropics_Water_Budget.png"
-plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
-plt.close()
-print(f"Figure saved to: {final_plot_path}")
+# # Plotting script
+# plt.figure(figsize=(16, 6))
+# plt.plot(total_mass_val['time'], total_mass_val.values / 1e9) # Convert to Tg
+# plt.xlabel("Time (YYYY-MM)")
+# plt.ylabel("Mass (Tg)")
+# plt.title("MERRA-2 Total Integrated Stratospheric Water Vapour (30N to 30S)")
+# final_plot_path = f"/home/karengarcia/MSc_project/Figures/Water_budget/MERRA_Tropics_Water_Budget.png"
+# plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+# plt.close()
+# print(f"Figure saved to: {final_plot_path}")
 
-# ##############################################################################
-# #Zonal comparison
-# W_strat_lat = W_strat.mean(dim=['time', 'lon']).compute()
-# # Plotting W_strat as a function of Latitude
+##############################################################################
+#Zonal comparison
+W_strat_lat = W_strat.mean(dim=['time', 'lon']).compute()
+# Plotting W_strat as a function of Latitude
 
-# plt.figure(figsize=(10, 6))
-# plt.plot(W_strat_lat['lat'], W_strat_lat.values, color='teal', linewidth=2, label='Model $TWC_{strat}$')
-# plt.axvline(x=-30, color='gray', linestyle='--', alpha=0.7)
-# plt.axvline(x=30, color='gray', linestyle='--', alpha=0.7)
-# plt.title("MERRA-2 Zonal Mean Integrated Stratospheric Water Vapor Column", fontsize=14, pad=15)
-# plt.xlabel("Latitude (°N)", fontsize=12)
-# plt.ylabel("Stratospheric Water Column ($kg / m^2$)", fontsize=12)
-# plt.grid(True, linestyle=':', alpha=0.6)
-# plt.xlim(-90, 90)
+plt.figure(figsize=(10, 6))
+plt.plot(W_strat_lat['lat'], W_strat_lat.values, color='teal', linewidth=2, label='Model $TWC_{strat}$')
+plt.axvline(x=-30, color='gray', linestyle='--', alpha=0.7)
+plt.axvline(x=30, color='gray', linestyle='--', alpha=0.7)
+plt.title("MERRA-2 Zonal Mean Integrated Stratospheric Water Vapor Column", fontsize=14, pad=15)
+plt.xlabel("Latitude (°N)", fontsize=12)
+plt.ylabel("Stratospheric Water Column ($kg / m^2$)", fontsize=12)
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.xlim(-90, 90)
 
-# plt.xticks([-90, -60, -30, 0, 30, 60, 90], ['90°S', '60°S', '30°S', '0°', '30°N', '60°N', '90°N'])
-# plt.legend()
-# lat_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/MERRA_Strat_Water_vs_Latitude.png"
-# plt.savefig(lat_plot_path, dpi=300, bbox_inches='tight')
-# print(f"Latitude diagnostic plot saved to: {lat_plot_path}")
+plt.xticks([-90, -60, -30, 0, 30, 60, 90], ['90°S', '60°S', '30°S', '0°', '30°N', '60°N', '90°N'])
+plt.legend()
+lat_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/MERRA_Strat_Water_vs_Latitude.png"
+plt.savefig(lat_plot_path, dpi=300, bbox_inches='tight')
+print(f"Latitude diagnostic plot saved to: {lat_plot_path}")
