@@ -3,6 +3,8 @@ import glob
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
+from PIL import Image
+
 ########################################################
 ######################### ERA5 ######################### 
 ########################################################
@@ -28,10 +30,10 @@ ERA_ua_ds  = xr.open_mfdataset(ERA_ua_files, chunks=chunks).sortby('pressure_lev
 ERA_va_ds  = xr.open_mfdataset(ERA_va_files, chunks=chunks).sortby('pressure_level')
 ERA_hus_ds = xr.open_mfdataset(ERA_hus_files, chunks=chunks).sortby('pressure_level')
 ERA_wap_ds = xr.open_mfdataset(ERA_wap_files, chunks=chunks).sortby('pressure_level')
-ERA_mua_ds  = xr.open_mfdataset(ERA_mua_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)+1))
-ERA_mva_ds  = xr.open_mfdataset(ERA_mva_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)+1))
-ERA_mhus_ds = xr.open_mfdataset(ERA_mhus_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)+1))
-ERA_mwap_ds = xr.open_mfdataset(ERA_mwap_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)+1))
+ERA_mua_ds  = xr.open_mfdataset(ERA_mua_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)))
+ERA_mva_ds  = xr.open_mfdataset(ERA_mva_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)))
+ERA_mhus_ds = xr.open_mfdataset(ERA_mhus_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)))
+ERA_mwap_ds = xr.open_mfdataset(ERA_mwap_files, chunks=chunks).sortby('pressure_level').isel(valid_time=slice(-12*6,(-12*5)))
 
  
 ERA_u     = ERA_ua_ds['u'].sel(pressure_level=slice(0, p_c))
@@ -116,7 +118,7 @@ plt.title('ERA5 Full Stratospheric Moisture Tendency \n(Predefined Control Volum
 plt.xlabel('Date (YYYY-MM)', fontsize=12)
 plt.ylabel(r'$\frac{\partial Q_s}{\partial t} (\frac{kg}{m^{2} \cdot s})$', fontsize=14)
 plt.grid(True, linestyle=':')
-final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_dQsdt_Above100hPa.png")
+final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_dQsdt_Above100hPa.png")
 plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"Figure saved to: {final_plot_path}")
@@ -127,9 +129,9 @@ plt.plot(ERA_mplot_time, ERA_mResidual_ts,  color='black', linestyle="-")
 plt.ylim([-1.5e-10,1.5e-10])
 plt.title('ERA5 Amip Stratospheric Moisture Tendency from Residual \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
 plt.xlabel('Date (YYYY-MM)', fontsize=12)
-plt.ylabel(r'$-\nabla_h \cdot \mathbf{F}_{q,h} (\frac{kg}{m^{2} \cdot s})$', fontsize=14)
+plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
 plt.grid(True, linestyle=':')
-final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_Qphys_Qdiff_Above100hPa.png")
+final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_Qphys_Qdiff_Above100hPa.png")
 plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"Figure saved to: {final_plot_path}")
@@ -140,21 +142,22 @@ plt.plot(ERA_mplot_time, ERA_mDiv_h_ts, color='black', linestyle="-")
 plt.ylim([-1e-12,1e-12])
 plt.title('ERA5 Amip Moisture Transport Divergence \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
 plt.xlabel('Date (YYYY-MM)', fontsize=12)
-plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q}  (\frac{kg}{m^{2} \cdot s})$', fontsize=14)
+plt.ylabel(r'$\nabla_h \cdot \mathbf{F}_{q,h} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
 plt.grid(True, linestyle=':')
-final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_divFqh_Above100hPa.png")
+final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_divFqh_Above100hPa.png")
 plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"Figure saved to: {final_plot_path}")
 
 plt.figure(figsize=(14, 7))
 plt.plot(ERA_plot_time, ERA_Flux_v_ts, color='black', linestyle="--")
-plt.plot(ERA_plot_time, ERA_Flux_v_ts, color='black', linestyle="-")
+plt.plot(ERA_mplot_time, ERA_mFlux_v_ts, color='black', linestyle="-")
+plt.ylim([-1.5e-10,1.5e-10])
 plt.title('ERA5 Amip Flux of Moisture across 100hPa', fontsize=16, fontweight='bold')
 plt.xlabel('Date (YYYY-MM)', fontsize=12)
-plt.ylabel(r'Vertical Boundary Flux ($\frac{q\omega}{g}$)', fontsize=14)
+plt.ylabel(r'Vertical Boundary Flux $(\frac{kg}{m^{2} \cdot s})$', fontsize=14)
 plt.grid(True, linestyle=':')
-final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_Flux100hPa.png")
+final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_Flux100hPa.png")
 plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"Figure saved to: {final_plot_path}")
@@ -174,7 +177,7 @@ plt.plot(ERA_mplot_time, ERA_mDiv_h_ts,
          color='crimson', linestyle='-')
 
 plt.plot(ERA_plot_time, ERA_Flux_v_ts,
-         label=r'Vertical Boundary Flux ($\frac{q\omega}{g}$ at 100hPa)',
+         label=r'Vertical Boundary Flux (-$\frac{q\omega}{g}$ at 100hPa)',
          color='royalblue', alpha=0.8, linestyle='--')
 plt.plot(ERA_mplot_time, ERA_mFlux_v_ts,
         color='royalblue', linestyle='-')
@@ -190,241 +193,413 @@ plt.xlabel('Date (YYYY-MM)', fontsize=12)
 plt.ylabel(r'Moisture Flux Component [ $\frac{kg}{m^{2} \cdot s}$]', fontsize=12)
 plt.grid(True, linestyle=':')
 plt.legend(fontsize=11, loc='upper right')
-final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_All_components_fluxes.png")
+final_plot_path = ("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_All_components_fluxes.png")
 plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"Figure saved to: {final_plot_path}") 
 
-# ########################################################
-# ######################## CanAM5 ######################## 
-# ########################################################
+########################################################
+######################## CanAM5 ######################## 
+########################################################
 
 
-# # Settings and Constants
-# g = 9.81           # Gravity (m/s^2)
-# R = 6371000.0      # Earth's radius (meters)
-# p_c = 100 * 100    # Control surface of 100 hPa (converted to Pa, i.e., 10000 Pa)
+# Settings and Constants
+g = 9.81           # Gravity (m/s^2)
+R = 6371000.0      # Earth's radius (meters)
+p_c = 100 * 100    # Control surface of 100 hPa (converted to Pa, i.e., 10000 Pa)
 
-# chunks = {'time': 120, 'lat': 64, 'lon': 128}
-# CAN_data_dir = "/home/karengarcia/downloads-karengarcia/ESGF_downloads/Daily/"
+chunks = {'time': 120, 'lat': 64, 'lon': 128}
+CAN_data_dir = "/home/karengarcia/downloads-karengarcia/ESGF_downloads/Daily/"
+CAN_mdata_dir = "/home/karengarcia/downloads-karengarcia/ESGF_downloads/Monthly/"
 
-# # File Paths
-# CAN_ua_files  = sorted(glob.glob(os.path.join(CAN_data_dir, "ua/ua_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
-# CAN_va_files  = sorted(glob.glob(os.path.join(CAN_data_dir, "va/va_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
-# CAN_hus_files = sorted(glob.glob(os.path.join(CAN_data_dir, "hus/hus_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
-# CAN_wap_files = sorted(glob.glob(os.path.join(CAN_data_dir, "wap/wap_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
+# File Paths
+CAN_ua_files  = sorted(glob.glob(os.path.join(CAN_data_dir, "ua/ua_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
+CAN_va_files  = sorted(glob.glob(os.path.join(CAN_data_dir, "va/va_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
+CAN_hus_files = sorted(glob.glob(os.path.join(CAN_data_dir, "hus/hus_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
+CAN_wap_files = sorted(glob.glob(os.path.join(CAN_data_dir, "wap/wap_day_CanESM5_amip_r1i1p2f1_gn_2011*.nc")))
 
-# CAN_ua_ds  = xr.open_mfdataset(CAN_ua_files, chunks=chunks).sortby('plev').isel(time=slice(-365,None))
-# CAN_va_ds  = xr.open_mfdataset(CAN_va_files, chunks=chunks).sortby('plev').isel(time=slice(-365,None))
-# CAN_hus_ds = xr.open_mfdataset(CAN_hus_files, chunks=chunks).sortby('plev').isel(time=slice(-365,None))
-# CAN_wap_ds = xr.open_mfdataset(CAN_wap_files, chunks=chunks).sortby('plev').isel(time=slice(-365,None))
+CAN_mua_files  = sorted(glob.glob(os.path.join(CAN_mdata_dir, "ua_Amon_CanESM5_amip_r1i1p2f1_gn_195001-201412.nc")))
+CAN_mva_files  = sorted(glob.glob(os.path.join(CAN_mdata_dir, "va_Amon_CanESM5_amip_r1i1p2f1_gn_195001-201412.nc")))
+CAN_mhus_files = sorted(glob.glob(os.path.join(CAN_mdata_dir, "hus_Amon_CanESM5_amip_r1i1p2f1_gn_195001-201412.nc")))
+CAN_mwap_files = sorted(glob.glob(os.path.join(CAN_mdata_dir, "wap_Amon_CanESM5_amip_r1i1p2f1_gn_195001-201412.nc")))
 
-# CAN_ua    = CAN_ua_ds['ua'].sel(plev=slice(0, p_c))
-# CAN_va    = CAN_va_ds['va'].sel(plev=slice(0, p_c))
-# CAN_q     = CAN_hus_ds['hus'].sel(plev=slice(0, p_c))
-# CAN_omega = CAN_wap_ds['wap'].sel(plev=slice(0, p_c))
-# CAN_q_pc     = CAN_hus_ds['hus'].sel(plev=p_c, method='nearest')
-# CAN_omega_pc = CAN_wap_ds['wap'].sel(plev=p_c, method='nearest')
+CAN_ua_ds  = xr.open_mfdataset(CAN_ua_files, chunks=chunks).sortby('plev').isel(time=slice(-365, None))
+CAN_va_ds  = xr.open_mfdataset(CAN_va_files, chunks=chunks).sortby('plev').isel(time=slice(-365, None))
+CAN_hus_ds = xr.open_mfdataset(CAN_hus_files, chunks=chunks).sortby('plev').isel(time=slice(-365, None))
+CAN_wap_ds = xr.open_mfdataset(CAN_wap_files, chunks=chunks).sortby('plev').isel(time=slice(-365, None))
 
+CAN_mua_ds  = xr.open_mfdataset(CAN_mua_files, chunks=chunks).sortby('plev').isel(time=slice(-12, None))
+CAN_mva_ds  = xr.open_mfdataset(CAN_mva_files, chunks=chunks).sortby('plev').isel(time=slice(-12, None))
+CAN_mhus_ds = xr.open_mfdataset(CAN_mhus_files, chunks=chunks).sortby('plev').isel(time=slice(-12, None))
+CAN_mwap_ds = xr.open_mfdataset(CAN_mwap_files, chunks=chunks).sortby('plev').isel(time=slice(-12, None))
 
-# # Term 1: Full stratospheric moisture tendency (dQ/dt)
-# print("CAN Term 1: Full stratospheric moisture tendency")
-# CAN_time_seconds = (CAN_q.time - CAN_q.time[0]).dt.total_seconds()
-# CAN_dq_dt = CAN_q.assign_coords(time=CAN_time_seconds).differentiate('time')
-# CAN_dq_dt = CAN_dq_dt.assign_coords(time=CAN_q.time)
+CAN_ua    = CAN_ua_ds['ua'].sel(plev=slice(0, p_c))
+CAN_va    = CAN_va_ds['va'].sel(plev=slice(0, p_c))
+CAN_q     = CAN_hus_ds['hus'].sel(plev=slice(0, p_c))
+CAN_omega = CAN_wap_ds['wap'].sel(plev=slice(0, p_c))
+CAN_mua    = CAN_mua_ds['ua'].sel(plev=slice(0, p_c))
+CAN_mva    = CAN_mva_ds['va'].sel(plev=slice(0, p_c))
+CAN_mq     = CAN_mhus_ds['hus'].sel(plev=slice(0, p_c))
+CAN_momega = CAN_mwap_ds['wap'].sel(plev=slice(0, p_c))
 
-# CAN_Q_s_spatial = (1 / g) * CAN_dq_dt.integrate('plev')
-
-# # Term 2: Horizontal Moisture Transport Divergence
-# print("CAN Term 2: Moisture Transport Divergence")
-# CAN_uq = CAN_q * CAN_ua
-# CAN_vq = CAN_q * CAN_va
-
-# CAN_cos_lat = np.cos(np.radians(CAN_q.lat))
-
-# # Differentiate by degrees and convert to radians via (180 / pi)
-# CAN_duq_dlon = CAN_uq.differentiate('lon') * (180.0 / np.pi)
-# CAN_d_vq_coslat_dlat = (CAN_vq * CAN_cos_lat).differentiate('lat') * (180.0 / np.pi)
-
-# # Spherical coordinate divergence: 
-# CAN_div_h = (1 / (R * CAN_cos_lat)) * (CAN_duq_dlon + CAN_d_vq_coslat_dlat)
-# CAN_Div_h_spatial = -(1 / g) * CAN_div_h.integrate('plev')
+CAN_q_pc     = CAN_hus_ds['hus'].sel(plev=p_c, method='nearest')
+CAN_omega_pc = CAN_wap_ds['wap'].sel(plev=p_c, method='nearest')
+CAN_mq_pc     = CAN_mhus_ds['hus'].sel(plev=p_c, method='nearest')
+CAN_momega_pc = CAN_mwap_ds['wap'].sel(plev=p_c, method='nearest')
 
 
-# # Term 3: Vertical Flux Across 100hPa Isobar
-# print("CAN Term 3: Vertical Flux Across 100hPa")
-# CAN_Flux_v_spatial = -(CAN_q_pc * CAN_omega_pc) / g
+# Term 1: Full stratospheric moisture tendency (dQ/dt)
+print("CAN Term 1: Full stratospheric moisture tendency")
+CAN_time_seconds = (CAN_q.time - CAN_q.time[0]).dt.total_seconds()
+CAN_dq_dt = CAN_q.assign_coords(time=CAN_time_seconds).differentiate('time')
+CAN_dq_dt = CAN_dq_dt.assign_coords(time=CAN_q.time)
+CAN_mtime_seconds = (CAN_mq.time - CAN_mq.time[0]).dt.total_seconds()
+CAN_mdq_dt = CAN_mq.assign_coords(time=CAN_mtime_seconds).differentiate('time')
+CAN_mdq_dt = CAN_mdq_dt.assign_coords(time=CAN_mq.time)
+
+CAN_Q_s_spatial = (1 / g) * CAN_dq_dt.integrate('plev')
+CAN_mQ_s_spatial = (1 / g) * CAN_mdq_dt.integrate('plev')
+
+# Term 2: Horizontal Moisture Transport Divergence
+print("CAN Term 2: Moisture Transport Divergence")
+CAN_uq = CAN_q * CAN_ua
+CAN_vq = CAN_q * CAN_va
+CAN_muq = CAN_mq * CAN_mua
+CAN_mvq = CAN_mq * CAN_mva
+
+CAN_cos_lat = np.cos(np.radians(CAN_q.lat))
+CAN_mcos_lat = np.cos(np.radians(CAN_mq.lat))
+
+# Differentiate by degrees and convert to radians via (180 / pi)
+CAN_duq_dlon = CAN_uq.differentiate('lon') * (180.0 / np.pi)
+CAN_mduq_dlon = CAN_muq.differentiate('lon') * (180.0 / np.pi)
+CAN_d_vq_coslat_dlat = (CAN_vq * CAN_cos_lat).differentiate('lat') * (180.0 / np.pi)
+CAN_md_vq_coslat_dlat = (CAN_mvq * CAN_mcos_lat).differentiate('lat') * (180.0 / np.pi)
+
+# Spherical coordinate divergence: 
+CAN_div_h = (1 / (R * CAN_cos_lat)) * (CAN_duq_dlon + CAN_d_vq_coslat_dlat)
+CAN_mdiv_h = (1 / (R * CAN_mcos_lat)) * (CAN_mduq_dlon + CAN_md_vq_coslat_dlat)
+CAN_Div_h_spatial = -(1 / g) * CAN_div_h.integrate('plev')
+CAN_mDiv_h_spatial = -(1 / g) * CAN_mdiv_h.integrate('plev')
 
 
-# # Spatial Averaging
-# CAN_weights = np.cos(np.radians(CAN_q.lat))
-# CAN_weights.name = "weights"
-
-# CAN_Q_s_ts    = CAN_Q_s_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
-# CAN_Div_h_ts  = CAN_Div_h_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
-# CAN_Flux_v_ts = CAN_Flux_v_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
+# Term 3: Vertical Flux Across 100hPa Isobar
+print("CAN Term 3: Vertical Flux Across 100hPa")
+CAN_Flux_v_spatial = -(CAN_q_pc * CAN_omega_pc) / g
+CAN_mFlux_v_spatial = -(CAN_mq_pc * CAN_momega_pc) / g
 
 
-# # Residual -> Sphys_q + Sdiff_q
-# # Tendency + Divergence_Loss + Vertical_Loss = Residual Sources
-# CAN_Residual_ts = CAN_Q_s_ts - CAN_Div_h_ts - CAN_Flux_v_ts
-# CAN_plot_time = CAN_Q_s_ts.indexes['time'].to_datetimeindex()
+# Spatial Averaging
+CAN_weights = np.cos(np.radians(CAN_q.lat))
+CAN_weights.name = "weights"
+
+CAN_mweights = np.cos(np.radians(CAN_mq.lat))
+CAN_mweights.name = "weights"
+
+CAN_Q_s_ts    = CAN_Q_s_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
+CAN_Div_h_ts  = CAN_Div_h_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
+CAN_Flux_v_ts = CAN_Flux_v_spatial.weighted(CAN_weights).mean(dim=('lat', 'lon')).compute()
+
+CAN_mQ_s_ts    = CAN_mQ_s_spatial.weighted(CAN_mweights).mean(dim=('lat', 'lon')).compute()
+CAN_mDiv_h_ts  = CAN_mDiv_h_spatial.weighted(CAN_mweights).mean(dim=('lat', 'lon')).compute()
+CAN_mFlux_v_ts = CAN_mFlux_v_spatial.weighted(CAN_mweights).mean(dim=('lat', 'lon')).compute()
 
 
-# # Plotting and Figures
-# print("CanAM5 plots")
+# Residual -> Sphys_q + Sdiff_q
+# Tendency + Divergence_Loss + Vertical_Loss = Residual Sources
+CAN_Residual_ts = CAN_Q_s_ts - CAN_Div_h_ts - CAN_Flux_v_ts
+CAN_plot_time = CAN_Q_s_ts.indexes['time'].to_datetimeindex()
 
-# # Plot 1: Tendency
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Q_s_ts, color='black')
-# plt.title('CanAM5 Amip Full Stratospheric Moisture Tendency \n(Predefined Control Volume - 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$\frac{\partial Q_s}{\partial t} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/dQsdt_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+CAN_mResidual_ts = CAN_mQ_s_ts - CAN_mDiv_h_ts - CAN_mFlux_v_ts
+CAN_mplot_time = CAN_mQ_s_ts.indexes['time'].to_datetimeindex()
+print("Done")
 
-# # Plot 2: Horizontal Divergence
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Div_h_ts, color='black')
-# plt.title('CanAM5 Amip Moisture Transport Divergence \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$\nabla_h \cdot \mathbf{F}_{q,h} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/divFqh_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 3: Residual Parameterizations (FIXED file name matching title)
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Residual_ts, color='black')
-# plt.title('CanAM5 Amip Stratospheric Moisture Tendency from Residual \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/Qphys_Qdiff_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plotting and Figures
+print("CanAM5 plots")
 
-# # Plot 4: Vertical Boundary Flux
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Flux_v_ts, color='black')
-# plt.title('CanAM5 Amip Flux of Moisture across 100hPa', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'Vertical Boundary Flux ($\frac{kg}{m^{2} \cdot s}$)', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/Flux100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plot 1: Tendency
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Q_s_ts, color='black', linestyle="--")
+plt.plot(CAN_mplot_time, CAN_mQ_s_ts, color='black', linestyle="-")
+plt.title('CanAM5 Amip Full Stratospheric Moisture Tendency \n(Predefined Control Volume - 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$\frac{\partial Q_s}{\partial t} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/dQsdt_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 5: Combined Plot
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Q_s_ts,
-#          label=r'Full stratospheric moisture tendency ($\frac{\partial Q_s}{\partial t}$)',
-#          color='black', linewidth=2)
-# plt.plot(CAN_plot_time, CAN_Div_h_ts,
-#          label=r'Moisture transport divergence ($\nabla_h \cdot \mathbf{F}_{q,h}$)',
-#          color='crimson', alpha=0.8, linestyle='--')
-# plt.plot(CAN_plot_time, CAN_Flux_v_ts,
-#          label=r'Vertical Boundary Flux Outward ($\frac{q\omega}{g}$ at 100hPa)',
-#          color='royalblue', alpha=0.8, linestyle=':')
-# plt.plot(CAN_plot_time, CAN_Residual_ts,
-#          label=r'Residual ($S^{phys}_{q} + S^{diff}_{q}$)',
-#          color='g', alpha=0.8, linestyle='-')
+# Plot 2: Horizontal Divergence
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Div_h_ts, color='black', linestyle="--")
+plt.plot(CAN_mplot_time, CAN_mDiv_h_ts, color='black', linestyle="-")
+plt.title('CanAM5 Amip Moisture Transport Divergence \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$\nabla_h \cdot \mathbf{F}_{q,h} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/divFqh_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
+
+# Plot 3: Residual Parameterizations 
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Residual_ts, color='black', linestyle="--")
+plt.plot(CAN_mplot_time, CAN_mResidual_ts, color='black', linestyle="-")
+plt.title('CanAM5 Amip Stratospheric Moisture Tendency from Residual \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/Qphys_Qdiff_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
+
+# Plot 4: Vertical Boundary Flux
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Flux_v_ts, color='black', linestyle="--")
+plt.plot(CAN_mplot_time, CAN_mFlux_v_ts, color='black', linestyle="-")
+plt.title('CanAM5 Amip Flux of Moisture across 100hPa', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'Vertical Boundary Flux ($\frac{kg}{m^{2} \cdot s}$)', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/Flux100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
+
+# Plot 5: Combined Plot
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Q_s_ts,
+         label=r'Full stratospheric moisture tendency ($\frac{\partial Q_s}{\partial t}$)',
+         color='black', linewidth=2, linestyle="--")
+plt.plot(CAN_mplot_time, CAN_mQ_s_ts,
+         color='black', linestyle="-")
+
+plt.plot(CAN_plot_time, CAN_Div_h_ts,
+         label=r'Moisture transport divergence ($\nabla_h \cdot \mathbf{F}_{q,h}$)',
+         color='crimson', alpha=0.8, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mDiv_h_ts,
+         color='crimson', alpha=0.8, linestyle='-')
+         
+plt.plot(CAN_plot_time, CAN_Flux_v_ts,
+         label=r'Vertical Boundary Flux Outward ($\frac{q\omega}{g}$ at 100hPa)',
+         color='royalblue', alpha=0.8, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mFlux_v_ts,
+         color='royalblue', alpha=0.8, linestyle='-')
+
+plt.plot(CAN_plot_time, CAN_Residual_ts,
+         label=r'Residual ($S^{phys}_{q} + S^{diff}_{q}$)',
+         color='g', alpha=0.8, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mResidual_ts,
+         color='g', alpha=0.8, linestyle='-')
  
-# plt.title('CanAM5 Stratospheric Water Vapor Budget Components\n(predefined control volume 100hPa)', fontsize=14, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'Moisture Flux Component [ $\frac{kg}{m^{2} \cdot s}$]', fontsize=12)
-# plt.grid(True, linestyle=':')
-# plt.legend(fontsize=11, loc='upper right')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/All_components_fluxes.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+plt.title('CanAM5 Stratospheric Water Vapor Budget Components\n(predefined control volume 100hPa)', fontsize=14, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'Moisture Flux Component [ $\frac{kg}{m^{2} \cdot s}$]', fontsize=12)
+plt.grid(True, linestyle=':')
+plt.legend(fontsize=11, loc='upper right')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/All_components_fluxes.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
 
-# # #########################################################
-# # ##################### CanAM5 - ERA5 #####################
-# # #########################################################
+# #########################################################
+# ##################### CanAM5 - ERA5 #####################
+# #########################################################
 
 
-# # Plotting and Figures
-# print("CanAM5 - ERA5 plots")
+# Plotting and Figures
+print("CanAM5 - ERA5 plots")
 
-# # Plot 1: Tendency
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Q_s_ts.values-ERA_Q_s_ts.values, color='black')
-# plt.title('CanAM5 - ERA5 Full Stratospheric Moisture Tendency \n(Predefined Control Volume - 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$\frac{\partial Q_s}{\partial t} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/diff_dQsdt_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plot 1: Tendency
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Q_s_ts.values-ERA_Q_s_ts.values, color='black', linestyle = "--")
+plt.plot(CAN_mplot_time, CAN_mQ_s_ts.values-ERA_mQ_s_ts.values, color='black', linestyle = "-")
+plt.title('CanAM5 - ERA5 Full Stratospheric Moisture Tendency \n(Predefined Control Volume - 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$\frac{\partial Q_s}{\partial t} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_dQsdt_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 2: Horizontal Divergence
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Div_h_ts.values-ERA_Div_h_ts.values, color='black')
-# plt.title('CanAM5 - ERA5 Moisture Transport Divergence \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$\nabla_h \cdot \mathbf{F}_{q,h} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/diff_divFqh_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plot 2: Horizontal Divergence
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Div_h_ts.values-ERA_Div_h_ts.values, color='black', linestyle = "--")
+plt.plot(CAN_mplot_time, CAN_mDiv_h_ts.values-ERA_mDiv_h_ts.values, color='black', linestyle = "-")
+plt.title('CanAM5 - ERA5 Moisture Transport Divergence \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$\nabla_h \cdot \mathbf{F}_{q,h} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_divFqh_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 3: Residual Parameterizations (FIXED file name matching title)
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Residual_ts.values-ERA_Residual_ts.values, color='black')
-# plt.title('CanAM5 - ERA5 Stratospheric Moisture Tendency from Residual \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/diff_Qphys_Qdiff_Above100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plot 3: Residual Parameterizations (FIXED file name matching title)
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Residual_ts.values-ERA_Residual_ts.values, color='black', linestyle = "--")
+plt.plot(CAN_mplot_time, CAN_mResidual_ts.values-ERA_mResidual_ts.values, color='black', linestyle = "-")
+plt.title('CanAM5 - ERA5 Stratospheric Moisture Tendency from Residual \n (Predefined Control Volume 100hPa)', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'$S^{phys}_{q} + S^{diff}_{q} \ (\frac{kg}{m^{2} \cdot s})$', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_Qphys_Qdiff_Above100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 4: Vertical Boundary Flux
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Flux_v_ts.values-ERA_Flux_v_ts.values, color='black')
-# plt.title('CanAM5 - ERA5 Flux of Moisture across 100hPa', fontsize=16, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'Vertical Boundary Flux ($\frac{kg}{m^{2} \cdot s}$)', fontsize=13)
-# plt.grid(True, linestyle=':')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/diff_Flux100hPa.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+# Plot 4: Vertical Boundary Flux
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Flux_v_ts.values-ERA_Flux_v_ts.values, color='black', linestyle = "--")
+plt.plot(CAN_mplot_time, CAN_mFlux_v_ts.values-ERA_mFlux_v_ts.values, color='black', linestyle = "-")
+plt.title('CanAM5 - ERA5 Flux of Moisture across 100hPa', fontsize=16, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'Vertical Boundary Flux ($\frac{kg}{m^{2} \cdot s}$)', fontsize=13)
+plt.grid(True, linestyle=':')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_Flux100hPa.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
 
-# # Plot 5: Combined Plot
-# plt.figure(figsize=(14, 7))
-# plt.plot(CAN_plot_time, CAN_Q_s_ts.values-ERA_Q_s_ts.values,
-#          label=r'Full stratospheric moisture tendency ($\frac{\partial Q_s}{\partial t}$)',
-#          color='black', linewidth=2)
-# plt.plot(CAN_plot_time, CAN_Div_h_ts.values-ERA_Div_h_ts.values,
-#          label=r'Moisture transport divergence ($\nabla_h \cdot \mathbf{F}_{q,h}$)',
-#          color='crimson', alpha=0.8, linestyle='--')
-# plt.plot(CAN_plot_time, CAN_Flux_v_ts.values-ERA_Flux_v_ts.values,
-#          label=r'Vertical Boundary Flux Outward ($\frac{q\omega}{g}$ at 100hPa)',
-#          color='royalblue', alpha=0.8, linestyle=':')
-# plt.plot(CAN_plot_time, CAN_Residual_ts.values-ERA_Residual_ts.values,
-#          label=r'Residual ($S^{phys}_{q} + S^{diff}_{q}$)',
-#          color='g', alpha=0.8, linestyle='-')
+# Plot 5: Combined Plot
+plt.figure(figsize=(14, 7))
+plt.plot(CAN_plot_time, CAN_Q_s_ts.values-ERA_Q_s_ts.values,
+         label=r'Full stratospheric moisture tendency ($\frac{\partial Q_s}{\partial t}$)',
+         color='black', linewidth=2, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mQ_s_ts.values-ERA_mQ_s_ts.values,
+        color='black', linewidth=2, linestyle='-')
+
+plt.plot(CAN_plot_time, CAN_Div_h_ts.values-ERA_Div_h_ts.values,
+         label=r'Moisture transport divergence ($\nabla_h \cdot \mathbf{F}_{q,h}$)',
+         color='crimson', alpha=0.8, linestyle='--')
+
+plt.plot(CAN_mplot_time, CAN_mDiv_h_ts.values-ERA_mDiv_h_ts.values,
+         color='crimson', alpha=0.8, linestyle='-')
+         
+plt.plot(CAN_plot_time, CAN_Flux_v_ts.values-ERA_Flux_v_ts.values,
+         label=r'Vertical Boundary Flux Outward ($\frac{q\omega}{g}$ at 100hPa)',
+         color='royalblue', alpha=0.8, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mFlux_v_ts.values-ERA_mFlux_v_ts.values,
+         color='royalblue', alpha=0.8, linestyle='-')
+
+plt.plot(CAN_plot_time, CAN_Residual_ts.values-ERA_Residual_ts.values,
+         label=r'Residual ($S^{phys}_{q} + S^{diff}_{q}$)',
+         color='g', alpha=0.8, linestyle='--')
+plt.plot(CAN_mplot_time, CAN_mResidual_ts.values-ERA_mResidual_ts.values,
+         color='g', alpha=0.8, linestyle='-')
  
-# plt.title('CanAM5 - ERA5 Stratospheric Water Vapor Budget Components\n(predefined control volume 100hPa)', fontsize=14, fontweight='bold')
-# plt.xlabel('Date (YYYY-MM)', fontsize=12)
-# plt.ylabel(r'Moisture Flux Component [ $\frac{kg}{m^{2} \cdot s}$]', fontsize=12)
-# plt.grid(True, linestyle=':')
-# plt.legend(fontsize=11, loc='upper right')
-# final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/diff_All_components_fluxes.png"
-# plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
-# plt.close()
-# print(f"Figure saved to: {final_plot_path}")
+plt.title('CanAM5 - ERA5 Stratospheric Water Vapor Budget Components\n(predefined control volume 100hPa)', fontsize=14, fontweight='bold')
+plt.xlabel('Date (YYYY-MM)', fontsize=12)
+plt.ylabel(r'Moisture Flux Component [ $\frac{kg}{m^{2} \cdot s}$]', fontsize=12)
+plt.grid(True, linestyle=':')
+plt.legend(fontsize=11, loc='upper right')
+final_plot_path = "/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_All_components_fluxes.png"
+plt.savefig(final_plot_path, dpi=300, bbox_inches="tight")
+plt.close()
+print(f"Figure saved to: {final_plot_path}")
+
+
+##############################################
+############### Combined plots ############### 
+##############################################
+print("Combined Plots")
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/All_components_fluxes.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_All_components_fluxes.png")
+img3 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_All_components_fluxes.png")
+
+fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 1]})
+axes[0].imshow(img1)
+axes[0].axis('off') 
+
+axes[1].imshow(img2)
+axes[1].axis('off')
+
+axes[2].imshow(img3)
+axes[2].axis('off')
+
+plt.tight_layout()
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/All_components_combined.png'
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+print(f"Figure saved to: {final_plot_path}")
+
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/divFqh_Above100hPa.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_divFqh_Above100hPa.png")
+img3 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_divFqh_Above100hPa.png")
+
+fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 1]})
+axes[0].imshow(img1)
+axes[0].axis('off') 
+
+axes[1].imshow(img2)
+axes[1].axis('off')
+
+axes[2].imshow(img3)
+axes[2].axis('off')
+
+plt.tight_layout()
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/divFqh_combined.png'
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+print(f"Figure saved to: {final_plot_path}")
+
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/dQsdt_Above100hPa.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_dQsdt_Above100hPa.png")
+img3 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_dQsdt_Above100hPa.png")
+
+fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 1]})
+axes[0].imshow(img1)
+axes[0].axis('off') 
+
+axes[1].imshow(img2)
+axes[1].axis('off')
+
+axes[2].imshow(img3)
+axes[2].axis('off')
+
+plt.tight_layout()
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/dQsdt_combined.png'
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+print(f"Figure saved to: {final_plot_path}")
+
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/Flux100hPa.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_Flux100hPa.png")
+img3 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_Flux100hPa.png")
+
+fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 1]})
+axes[0].imshow(img1)
+axes[0].axis('off') 
+
+axes[1].imshow(img2)
+axes[1].axis('off')
+
+axes[2].imshow(img3)
+axes[2].axis('off')
+
+plt.tight_layout()
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/Flux100hPa_combined.png'
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+print(f"Figure saved to: {final_plot_path}")
+
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5/Qphys_Qdiff_Above100hPa.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5/ERA5_Qphys_Qdiff_Above100hPa.png")
+img3 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/CanAM5-ERA5/diff_Qphys_Qdiff_Above100hPa.png")
+
+fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1, 1]})
+axes[0].imshow(img1)
+axes[0].axis('off') 
+
+axes[1].imshow(img2)
+axes[1].axis('off')
+
+axes[2].imshow(img3)
+axes[2].axis('off')
+
+plt.tight_layout()
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/Qphys_Qdiff_Above100hPa_combined.png'
+plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+print(f"Figure saved to: {final_plot_path}")
