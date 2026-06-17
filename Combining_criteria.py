@@ -85,48 +85,58 @@ from PIL import Image
 # plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 # print(f"Figure saved to: {final_plot_path}")
 
-#### Overshooting plots ####
+# #### Overshooting plots ####
 
-img11  = Image.open('/home/karengarcia/MSc_project/Figures/OC_after_testing/CanAM5_Overshooting_map_2014_npc.png')
-img12 = Image.open('/home/karengarcia/MSc_project/Figures/OC_after_testing/ERA5_coarse_overshooting.png')
-img13 = Image.open("/home/karengarcia/MSc_project/Figures/OC_after_testing/MERRA_Overshooting_2014.png")
-fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1,1]})
+# img11  = Image.open('/home/karengarcia/MSc_project/Figures/OC_after_testing/CanAM5_Overshooting_map_2014_npc.png')
+# img12 = Image.open('/home/karengarcia/MSc_project/Figures/OC_after_testing/ERA5_coarse_overshooting.png')
+# img13 = Image.open("/home/karengarcia/MSc_project/Figures/OC_after_testing/MERRA_Overshooting_2014.png")
+# fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1,1]})
 
-axes[0].imshow(img13)
+# axes[0].imshow(img13)
+# axes[0].axis('off') 
+
+# axes[1].imshow(img12)
+# axes[1].axis('off')
+
+# axes[2].imshow(img11)
+# axes[2].axis('off') 
+
+# plt.tight_layout()
+# final_plot_path = '/home/karengarcia/MSc_project/Figures/OC_after_testing/combined_Overshooting_maps.png'
+# plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+# print(f"Figure saved to: {final_plot_path}")
+
+
+# img11  = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/MERRA_precip_histogram.png')
+# img12 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/ERA5_precip_histogram.png')
+# img13 = Image.open("/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/Precip_histogram.png")
+# fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1,0.9]})
+
+# axes[0].imshow(img11)
+# axes[0].axis('off') 
+
+# axes[1].imshow(img12)
+# axes[1].axis('off')
+
+# axes[2].imshow(img13)
+# axes[2].axis('off') 
+
+# plt.tight_layout()
+# final_plot_path = '/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/combined_threshold_precip_histograms.png'
+# plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
+# print(f"Figure saved to: {final_plot_path}")
+
+img1 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/dQsdt_Above100hPa.png")
+img2 = Image.open("/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/ERA5_dQsdt_Above100hPa.png")
+
+fig, axes = plt.subplots(2, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1]})
+axes[0].imshow(img1)
 axes[0].axis('off') 
 
-axes[1].imshow(img12)
+axes[1].imshow(img2)
 axes[1].axis('off')
 
-axes[2].imshow(img11)
-axes[2].axis('off') 
-
 plt.tight_layout()
-final_plot_path = '/home/karengarcia/MSc_project/Figures/OC_after_testing/combined_Overshooting_maps.png'
+final_plot_path = '/home/karengarcia/MSc_project/Figures/Water_budget/Control_volume/dQsdt_Above100hPa_combined.png'
 plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
 print(f"Figure saved to: {final_plot_path}")
-
-
-img11  = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/MERRA_precip_histogram.png')
-img12 = Image.open('/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/ERA5_precip_histogram.png')
-img13 = Image.open("/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/Precip_histogram.png")
-fig, axes = plt.subplots(3, 1, figsize=(15, 5), gridspec_kw={'height_ratios': [1, 1,0.9]})
-
-axes[0].imshow(img11)
-axes[0].axis('off') 
-
-axes[1].imshow(img12)
-axes[1].axis('off')
-
-axes[2].imshow(img13)
-axes[2].axis('off') 
-
-plt.tight_layout()
-final_plot_path = '/home/karengarcia/MSc_project/Figures/Criteria_testing/Histograms/combined_threshold_precip_histograms.png'
-plt.savefig(final_plot_path, dpi=300, bbox_inches='tight')
-print(f"Figure saved to: {final_plot_path}")
-
-
-
-
-
